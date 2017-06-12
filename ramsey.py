@@ -76,19 +76,11 @@ class Graph:
 
     def findCliques(self, cliqueSize):
         cs = list(combinations(range(0, self.nodes), cliqueSize))  # get all combinations of possible cliques
-        print(cs)
-        print(len(cs))
-        cs = list(map(lambda c: (c, [(c[i - 1], x) for i, x in enumerate(c)]),
-                      cs))  # make pairs of beginning and end points of edges along clique
-        print(cs)
-        cs = list(map(lambda l: (l[0], [self.haveEdge(x[0], x[1]) for x in l[1]]),
-                      cs))  # evaluate each of those pairs and see if the edge exists
-        print(cs)
-        cs = list(
-            map(lambda l: (l[0], reduce(lambda a, b: a and b, l[1])), cs))  # see if clique has any nonexistant edges
+        cs = list(map(lambda c: (c, [(c[i - 1], x) for i, x in enumerate(c)]), cs))  # make pairs of beginning and end points of edges along clique
+        cs = list(map(lambda l: (l[0], [self.haveEdge(x[0], x[1]) for x in l[1]]), cs))  # evaluate each of those pairs and see if the edge exists
+        cs = list(map(lambda l: (l[0], reduce(lambda a, b: a and b, l[1])), cs))  # see if clique has any nonexistant edges
         cs = list(filter(lambda b: b[1], cs))  # take only the ones that have all existing edges
-        cs = list(map(lambda b: b[0],
-                      cs))  # get its associated node tuple (the one that it's been passing along this whole time)
+        cs = list(map(lambda b: b[0], cs))  # get its associated node tuple (the one that it's been passing along this whole time)
         return cs
 
     # Stuff James has added 6/8/17
@@ -112,14 +104,14 @@ class Graph:
         edge_list = []
         labels = {}
 
-        for i in range(len(a.graph)+1):
+        for i in range(len(self.graph)+1):
             G.add_node(i)
             node_list.append(i)
             labels[i] = i
 
         pos = nx.circular_layout(G)
-        for i in range(len(a.graph)+1):
-            for j in range(len(a.graph)+1):
+        for i in range(len(self.graph)+1):
+            for j in range(len(self.graph)+1):
                 if self.haveEdge(i,j):
                     G.add_edge(i,j)
                     edge_list.append((i,j))
@@ -198,8 +190,16 @@ def ramseyTest(populationSize, numberOfRuns, cliqueSize, size):
     print(bestFitness)
     return bestGraph
 
-a = ramseyTest(10, 50, 4, 6)
-print(a.fitness(4))
-print(a.findCliques(4))
-print(a)
-a.draw()
+################################################################################
+# EXECUTION
+################################################################################
+
+def testRamsey():
+    a = ramseyTest(10, 50, 4, 6)
+    print(a.fitness(4))
+    print(a.findCliques(4))
+    print(a)
+    a.draw()
+
+if __name__ == "__main__": # if python script is run as an executable
+    testRamsey()

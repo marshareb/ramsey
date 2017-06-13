@@ -42,8 +42,9 @@ class Graph(Graph):
         self.graph[row][col] = not self.graph[row][col]
 
 """NOT OPTIMAL"""
-def ramseyTest(populationSize, numberOfRuns, cliqueSize, size):
+def ramseyTest(population, numberOfRuns, cliqueSize, size):
     import sys
+    import copy
     # Dictionary to hold all of the different graphs associated to their fitness number
     pop = {}
 
@@ -53,12 +54,11 @@ def ramseyTest(populationSize, numberOfRuns, cliqueSize, size):
     worstFitness = 0
 
     # Generate all the graphs, figure out bestFitness and worstFitness
-    for i in range(populationSize):
-        a = Graph(randomGenerator, size)
+    for a in population:
         pop[a] = a.fitness(cliqueSize)
         if pop[a] < bestFitness:
             bestFitness = pop[a]
-            bestGraph = a
+            bestGraph = copy.deepcopy(a)
         if pop[a] > worstFitness:
             worstFitness = pop[a]
 
@@ -75,7 +75,7 @@ def ramseyTest(populationSize, numberOfRuns, cliqueSize, size):
             pop[k] = k.fitness(cliqueSize)
             if pop[k] < bestFitness:
                 bestFitness = pop[k]
-                bestGraph = k
+                bestGraph = copy.deepcopy(k)
             if pop[k] > worstFitness:
                 worstFitness = pop[k]
         # Check to see if we've found a winner
@@ -87,9 +87,12 @@ def ramseyTest(populationSize, numberOfRuns, cliqueSize, size):
                 del pop[i]
                 a = Graph(randomGenerator, size)
                 pop[a] = a.fitness(cliqueSize)
-        
+
         # That way, we can keep track of if it's running and how long each iteration is taking
         print("Iteration: {0} - Best Fitness: {1} - worstFitness {2}".format(run, bestFitness, worstFitness))
+
+        # Reset worstFitness
+        worstFitness = 0
 
     # Once we've cycled through all of the numberOfRuns, we conclude by saying how close we got to our goal of 0.
     print(bestFitness)
@@ -113,13 +116,19 @@ def testDnaGenerator():
     a.draw()
 
 def testRamsey(populationSize, numberOfRuns, cliqueSize, size):
-    a = ramseyTest(populationSize, numberOfRuns, cliqueSize, size)
-    print("Fitness: {0}".format(a.fitness(cliqueSize)))
-    cs = a.findCliques(cliqueSize)
-    print("{0}-Cliques: {1}".format(cliqueSize, cs[0]))
-    print("{0}-Anti-Cliques: {1}".format(cliqueSize, cs[1]))
-    print(a)
-    a.draw()
+    pop = [Graph(randomGenerator, 1) for x in range(populationSize)]
+    for i in range(1, size+1):
+        a = ramseyTest(pop, numberOfRuns, cliqueSize, i)
+        print("Fitness: {0}".format(a.fitness(cliqueSize)))
+        cs = a.findCliques(cliqueSize)
+        print("{0}-Cliques: {1}".format(cliqueSize, cs[0]))
+        print("{0}-Anti-Cliques: {1}".format(cliqueSize, cs[1]))
+        print(a)
+        if a.fitness(cliqueSize) != 0:
+            break
+        pop = generatePopulation(a, i+1, populationSize)
+        print(pop)
+    a.draw2()
 
 def testMonkeyEvolve(popSize, iterations, cliqueSize, graphSize):
     pop = [Graph(randomGenerator, graphSize) for x in range(popSize)]
@@ -137,7 +146,7 @@ if __name__ == "__main__": # if python script is run as an executable
     # print("--------------------------------------------------------------------------------")
     # testDnaGenerator()
     # print("--------------------------------------------------------------------------------")
-    testRamsey(10, 50, 4, 6)
+    testRamsey(50, 500, 4, 6)
     print("--------------------------------------------------------------------------------")
     testMonkeyEvolve(10, 50, 4, 6)
     print("--------------------------------------------------------------------------------")

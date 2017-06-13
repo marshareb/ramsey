@@ -144,7 +144,20 @@ class Graph:
             fromNode, toNode = toNode, fromNode # swap positions
     
         return self.graph[fromNode - 1][toNode]
-    
+
+    ################################################################################
+    # JAMES ADDED THIS
+
+    def mutate(self):
+        x = random.randint(0, len(self.graph) - 1)
+        y = random.randint(0, len(self.graph[x]) - 1)
+        self.toggleEdge(x, y)
+
+    def toggleEdge(self, row, col):
+        self.graph[row][col] = not self.graph[row][col]
+
+    ################################################################################
+
     def findCliques(self, cliqueSize):
         """returns a tuple of the list of cliques and the list of anti-cliques"""
         cs = list(necklaces(range(0, self.nodes), cliqueSize)) # get all combinations of possible cliques (order matters)

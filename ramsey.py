@@ -71,7 +71,7 @@ def ramseyTest(population, numberOfRuns, cliqueSize, size):
         
         # Mutate each graph
         for k in pop:
-            k.mutate()
+            k.mutate(cliqueSize)
             pop[k] = k.fitness(cliqueSize)
             if pop[k] < bestFitness:
                 bestFitness = pop[k]

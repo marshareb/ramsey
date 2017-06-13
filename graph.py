@@ -148,10 +148,38 @@ class Graph:
     ################################################################################
     # JAMES ADDED THIS
 
-    def mutate(self):
-        x = random.randint(0, len(self.graph) - 1)
-        y = random.randint(0, len(self.graph[x]) - 1)
-        self.toggleEdge(x, y)
+    def edgeList(self):
+        """Returns all the edges in the graph"""
+        # The j < i condition ensures that all of them are unique.
+        return [(i, j) for i in range(len(self.graph) + 1) for j in range(len(self.graph) + 1) if
+                self.hasEdge(i, j) and j < i]
+
+    def mutate(self, cliqueSize):
+        #TODO: fix this so it ramseyTest or any of the other genetic algorithms actually return counterexamples
+        # for R(4,4) on 6 vertices.
+        import copy
+        fit = self.fitness(cliqueSize)
+        count = 0
+
+        while self.fitness(cliqueSize) != 0:
+            isTrue = True
+            for i in self.edgeList():
+                a = copy.deepcopy(self)
+                a.toggleEdge(i[0]-1,i[1])
+                if a.fitness(cliqueSize) < self.fitness(cliqueSize):
+                    self.graph = a.graph
+                    isTrue = False
+                    count +=1
+                    return None
+            if isTrue == True:
+                break
+        print(count)
+        if self.fitness(cliqueSize) == fit:
+            print('No valid mutation, randomly toggling edge')
+            x = random.randint(0, len(self.graph) - 1)
+            y = random.randint(0, len(self.graph[x]) - 1)
+            self.toggleEdge(x, y)
+
 
     def toggleEdge(self, row, col):
         self.graph[row][col] = not self.graph[row][col]

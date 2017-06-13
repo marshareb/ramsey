@@ -58,6 +58,11 @@ def crossover(mom, dad):
     
     return baby
 
+
+def generatePopulation(startGraph, graphSize, populationSize):
+    """From a prior Ramsey graph, builds a new Ramsey graph"""
+    return [Graph(startGraph.generator2, graphSize) for x in range(populationSize)]
+
 ################################################################################
 # EVOLUTION
 ################################################################################

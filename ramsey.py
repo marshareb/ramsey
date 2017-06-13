@@ -41,6 +41,7 @@ class Graph(Graph):
     def toggleEdge(self, row, col):
         self.graph[row][col] = not self.graph[row][col]
 
+"""NOT OPTIMAL"""
 def ramseyTest(populationSize, numberOfRuns, cliqueSize, size):
     import sys
     # Dictionary to hold all of the different graphs associated to their fitness number

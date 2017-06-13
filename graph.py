@@ -63,6 +63,36 @@ class Graph:
         
         plt.show()
     
+
+    def draw2(self):
+        """Draws both colorings on the graph"""
+
+        # Gather graph information
+        nodes = list(range(self.nodes))
+        labels = {x: x for x in nodes}
+        potentialEdges = list(combinations(range(self.nodes), 2))  # potential edges
+        edges = [(e, self.hasEdge(e[0], e[1])) for e in potentialEdges]  # associate edge with wether it exists
+        edges = list(filter(lambda x: x[1], edges))  # filter out nonexistant edges
+        edges = list(map(lambda x: x[0], edges))  # get back associated edge tuple
+        antiedges = [e for e in potentialEdges if e not in edges]  # get complement list
+
+        A = nx.Graph()
+        A.add_nodes_from(nodes)
+        A.add_edges_from(edges)
+
+        B = nx.Graph()
+        B.add_nodes_from(nodes)
+        B.add_edges_from(antiedges)
+
+        pos = nx.circular_layout(A)
+
+        nx.draw_networkx_nodes(A, pos, nodelist=nodes)
+        nx.draw_networkx_edges(A, pos, edgelist=edges, edge_color = 'r')
+        nx.draw_networkx_labels(A, pos, labels)
+        nx.draw_networkx_edges(B, pos, edgelist=antiedges, edge_color = 'b')
+
+        plt.show()
+
     # Initialization
     
     def __init__(self, generator, nodes):

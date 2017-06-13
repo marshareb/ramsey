@@ -62,7 +62,6 @@ class Graph:
         nx.draw_networkx_labels(B, posB, labels)
         
         plt.show()
-    
 
     def draw2(self):
         """Draws both colorings on the graph"""
@@ -109,7 +108,15 @@ class Graph:
     def generator(self):
         """returns a generator that generates a copy"""
         return lambda r, c: self.graph[r][c]
-    
+
+    def generator2(self, r, c):
+        """a generator which builds a copy and then, if the number of nodes is bigger, fills in the difference 
+        randomly"""
+        try:
+            return self.graph[r][c]
+        except:
+            return random.choice([True, False])
+
     def __getitem__(self, key):
         if key == 0:
             return []

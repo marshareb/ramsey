@@ -50,11 +50,13 @@ class Graph:
         plt.figure(1)
         
         plt.subplot(1, 2, 1)
+        plt.title("Graph")
         nx.draw_networkx_nodes(A, posA, nodelist=nodes)
         nx.draw_networkx_edges(A, posA, edgelist=edges)
         nx.draw_networkx_labels(A, posA, labels)
         
         plt.subplot(1, 2, 2)
+        plt.title("Complement")
         nx.draw_networkx_nodes(B, posB, nodelist=nodes)
         nx.draw_networkx_edges(B, posB, edgelist=antiedges)
         nx.draw_networkx_labels(B, posB, labels)
@@ -103,23 +105,28 @@ class Graph:
         return self.graph[fromNode - 1][toNode]
     
     def findCliques(self, cliqueSize):
-        cs = list(necklaces(range(0, self.nodes), cliqueSize)) # get all combinations of possible cliques (order matters)
-        cs = list(map(lambda c: (c, [(c[i - 1], x) for i, x in enumerate(c)]), cs)) # make pairs of beginning and end points of edges along clique
-        cs = list(map(lambda l: (l[0], [self.hasEdge(x[0], x[1]) for x in l[1]]), cs)) # evaluate each of those pairs and see if the edge exists
-        cs = list(map(lambda l: (l[0], reduce(lambda a, b: a and b, l[1])), cs)) # see if clique has any nonexistant edges
-        cs = list(filter(lambda b: b[1], cs)) # take only the ones that have all existing edges
-        cs = list(map(lambda b: b[0], cs)) # get its associated node tuple (the one that it's been passing along this whole time)
-        return cs
-    
-    def fitness(self, cliqueSize):
-        """returns all cliques and anti-cliques of a given size found in the graph"""
+        """returns a tuple of the list of cliques and the list of anti-cliques"""
         cs = list(necklaces(range(0, self.nodes), cliqueSize)) # get all combinations of possible cliques (order matters)
         cs = list(map(lambda c: (c, [(c[i - 1], x) for i, x in enumerate(c)]), cs)) # make pairs of beginning and end points of edges along clique
         cs = list(map(lambda l: (l[0], [self.hasEdge(x[0], x[1]) for x in l[1]]), cs)) # evaluate each of those pairs and see if the edge exists
         cs = list(map(lambda l: (l[0], all(l[1]), not(any(l[1]))), cs)) # record if the clique is all edges or all non-edges
-        cs = list(filter(lambda b: b[1] or b[2], cs)) # take only the ones that have all existing or non-existing edges
-        cs = list(map(lambda b: b[0], cs)) # get its associated node tuple (the one that it's been passing along this whole time)
-        return len(cs)
+        ds = list(filter(lambda b: b[1], cs)) # take only the ones that have all existing edges (cliques)
+        qs = list(filter(lambda b: b[2], cs)) # take only the ones that have all non-existing edges (anti-cliques)
+        ds = list(map(lambda b: b[0], ds)) # get its associated node tuple (the one that it's been passing along this whole time)
+        qs = list(map(lambda b: b[0], qs)) # get its associated node tuple (the one that it's been passing along this whole time)
+        return (ds, qs)
+    
+    def fitness(self, cliqueSize):
+        """returns all cliques and anti-cliques of a given size found in the graph"""
+        # cs = list(necklaces(range(0, self.nodes), cliqueSize)) # get all combinations of possible cliques (order matters)
+        # cs = list(map(lambda c: (c, [(c[i - 1], x) for i, x in enumerate(c)]), cs)) # make pairs of beginning and end points of edges along clique
+        # cs = list(map(lambda l: (l[0], [self.hasEdge(x[0], x[1]) for x in l[1]]), cs)) # evaluate each of those pairs and see if the edge exists
+        # cs = list(map(lambda l: (l[0], all(l[1]), not(any(l[1]))), cs)) # record if the clique is all edges or all non-edges
+        # cs = list(filter(lambda b: b[1] or b[2], cs)) # take only the ones that have all existing or non-existing edges
+        # cs = list(map(lambda b: b[0], cs)) # get its associated node tuple (the one that it's been passing along this whole time)
+        # return len(cs)
+        cliques = self.findCliques(cliqueSize)
+        return len(cliques[0]) + len(cliques[1])
 
 def randomGenerator(r, c):
     return random.choice([True, False])

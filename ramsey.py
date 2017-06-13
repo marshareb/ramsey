@@ -66,9 +66,8 @@ def ramseyTest(populationSize, numberOfRuns, cliqueSize, size):
         return bestGraph
 
     # Run through the genetic simulation
-    for i in range(numberOfRuns):
-        # That way, we can keep track of if it's running and how long each iteration is taking
-        print('Iteration: ' + str(i))
+    for run in range(numberOfRuns):
+        
         # Mutate each graph
         for k in pop:
             k.mutate()
@@ -87,6 +86,9 @@ def ramseyTest(populationSize, numberOfRuns, cliqueSize, size):
                 del pop[i]
                 a = Graph(randomGenerator, size)
                 pop[a] = a.fitness(cliqueSize)
+        
+        # That way, we can keep track of if it's running and how long each iteration is taking
+        print("Iteration: {0} - Best Fitness: {1} - worstFitness {2}".format(run, bestFitness, worstFitness))
 
     # Once we've cycled through all of the numberOfRuns, we conclude by saying how close we got to our goal of 0.
     print(bestFitness)
@@ -99,6 +101,7 @@ def ramseyTest(populationSize, numberOfRuns, cliqueSize, size):
 def testGraph():
     a = Graph(randomGenerator, 6)
     print(a)
+    print(a.findCliques(3))
     print(a.fitness(3))
     a.draw()
 
@@ -108,15 +111,35 @@ def testDnaGenerator():
     print(a.fitness(3))
     a.draw()
 
-def testRamsey():
-    a = ramseyTest(10, 50, 4, 6)
-    print(a.fitness(4))
-    print(a.findCliques(4))
+def testRamsey(populationSize, numberOfRuns, cliqueSize, size):
+    a = ramseyTest(populationSize, numberOfRuns, cliqueSize, size)
+    print("Fitness: {0}".format(a.fitness(cliqueSize)))
+    cs = a.findCliques(cliqueSize)
+    print("{0}-Cliques: {1}".format(cliqueSize, cs[0]))
+    print("{0}-Anti-Cliques: {1}".format(cliqueSize, cs[1]))
     print(a)
     a.draw()
 
+def testMonkeyEvolve(popSize, iterations, cliqueSize, graphSize):
+    pop = [Graph(randomGenerator, graphSize) for x in range(popSize)]
+    ff = lambda x: Graph.fromDna(x).fitness(cliqueSize)
+    a = evolveByRankedSexualReproduction(list(map(lambda m: m.dna(), pop)), ff, iterations)
+    g = Graph.fromDna(a)
+    cs = g.findCliques(cliqueSize)
+    print("{0}-Cliques: {1}".format(cliqueSize, cs[0]))
+    print("{0}-Anti-Cliques: {1}".format(cliqueSize, cs[1]))
+    print(g)
+    g.draw()
+
 if __name__ == "__main__": # if python script is run as an executable
-    testRamsey()
+    # testGraph()
+    # print("--------------------------------------------------------------------------------")
+    # testDnaGenerator()
+    # print("--------------------------------------------------------------------------------")
+    testRamsey(10, 50, 4, 6)
+    print("--------------------------------------------------------------------------------")
+    testMonkeyEvolve(10, 50, 4, 6)
+    print("--------------------------------------------------------------------------------")
 
 
     

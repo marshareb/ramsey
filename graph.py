@@ -76,6 +76,10 @@ class Graph:
     
     # Accessors
     
+    def generator(self):
+        """returns a generator that generates a copy"""
+        return lambda r, c: self.graph[r][c]
+    
     def __getitem__(self, key):
         if key == 0:
             return []

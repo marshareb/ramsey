@@ -1,8 +1,10 @@
-from itertools import combinations, permutations
+from itertools import combinations
 from functools import reduce
 import random
 import networkx as nx
 import matplotlib.pyplot as plt
+
+from extensions import *
 
 class Graph:
     # Instance Variables
@@ -63,8 +65,7 @@ class Graph:
     
     def __init__(self, generator, nodes):
         self.nodes = nodes
-        self.graph = [[generator(row, col) for col in range(0, row + 1)] for row in
-                      range(0, nodes - 1)] # assuming immutability
+        self.graph = [[generator(row, col) for col in range(0, row + 1)] for row in range(0, nodes - 1)] # assuming immutability
     
     def complement(self):
         """Returns a complement graph"""
@@ -102,7 +103,7 @@ class Graph:
         return self.graph[fromNode - 1][toNode]
     
     def findCliques(self, cliqueSize):
-        cs = list(permutations(range(0, self.nodes), cliqueSize)) # get all combinations of possible cliques (order matters)
+        cs = list(necklaces(range(0, self.nodes), cliqueSize)) # get all combinations of possible cliques (order matters)
         cs = list(map(lambda c: (c, [(c[i - 1], x) for i, x in enumerate(c)]), cs)) # make pairs of beginning and end points of edges along clique
         cs = list(map(lambda l: (l[0], [self.hasEdge(x[0], x[1]) for x in l[1]]), cs)) # evaluate each of those pairs and see if the edge exists
         cs = list(map(lambda l: (l[0], reduce(lambda a, b: a and b, l[1])), cs)) # see if clique has any nonexistant edges
@@ -112,7 +113,7 @@ class Graph:
     
     def fitness(self, cliqueSize):
         """returns all cliques and anti-cliques of a given size found in the graph"""
-        cs = list(permutations(range(0, self.nodes), cliqueSize)) # get all combinations of possible cliques (order matters)
+        cs = list(necklaces(range(0, self.nodes), cliqueSize)) # get all combinations of possible cliques (order matters)
         cs = list(map(lambda c: (c, [(c[i - 1], x) for i, x in enumerate(c)]), cs)) # make pairs of beginning and end points of edges along clique
         cs = list(map(lambda l: (l[0], [self.hasEdge(x[0], x[1]) for x in l[1]]), cs)) # evaluate each of those pairs and see if the edge exists
         cs = list(map(lambda l: (l[0], all(l[1]), not(any(l[1]))), cs)) # record if the clique is all edges or all non-edges

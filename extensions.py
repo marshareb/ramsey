@@ -18,4 +18,9 @@ def necklaces(things, size):
     return ps
 
 def shift(l, n):
+    """shifts a list n to the right and brings the last elements around to the front"""
     return l[n:] + l[:n]
+
+def flatten(m):
+    """flattens a list of lists to 1 dimension lower with all lists appended one after another"""
+    return [item for row in m for item in row]

@@ -4,7 +4,7 @@ import random
 import networkx as nx
 import matplotlib.pyplot as plt
 
-from extensions import *
+from extensions import necklaces
 
 class Graph:
     # Instance Variables
@@ -119,5 +119,7 @@ class Graph:
         cs = list(map(lambda l: (l[0], all(l[1]), not(any(l[1]))), cs)) # record if the clique is all edges or all non-edges
         cs = list(filter(lambda b: b[1] or b[2], cs)) # take only the ones that have all existing or non-existing edges
         cs = list(map(lambda b: b[0], cs)) # get its associated node tuple (the one that it's been passing along this whole time)
-        print(cs)
         return len(cs)
+
+def randomGenerator(r, c):
+    return random.choice([True, False])

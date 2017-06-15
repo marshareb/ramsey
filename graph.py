@@ -3,6 +3,7 @@ from functools import reduce
 import random
 import networkx as nx
 import matplotlib.pyplot as plt
+import copy
 
 from extensions import necklaces
 
@@ -21,7 +22,7 @@ class Graph:
     
     def __repr__(self): # called if just stated in top level
         return self.__str__() # defer to a single display function
-    
+
     def draw(self):
         """draws the node in a visual format"""
         
@@ -33,7 +34,7 @@ class Graph:
         edges = list(filter(lambda x: x[1], edges)) # filter out nonexistant edges
         edges = list(map(lambda x: x[0], edges)) # get back associated edge tuple
         antiedges = [e for e in potentialEdges if e not in edges] # get complement list
-        
+
         # Create graph object
         A = nx.Graph() # create nx graph
         A.add_nodes_from(nodes) # add nodes
@@ -90,6 +91,39 @@ class Graph:
         nx.draw_networkx_labels(A, pos, labels)
         nx.draw_networkx_edges(B, pos, edgelist=antiedges, edge_color = 'b')
 
+        def length_of_lexicon(g, size):
+            length = sum(1 for x in lexicon_of_size(g, size))
+            return length
+
+        def list_of_lexicon(g, size):
+            return list(lexicon_of_size(g, size))
+
+        def lexicon_of_size(G, size):
+            from collections import deque
+            from itertools import chain, islice
+            index = {}
+            nbrs = {}
+            for u in G:
+                index[u] = len(index)
+                # Neighbors of u that appear after u in the iteration order of G.
+                nbrs[u] = {v for v in G[u] if v not in index}
+
+            queue = deque(([u], sorted(nbrs[u], key=index.__getitem__)) for u in G)
+
+            # Loop invariants:
+            # 1. len(base) is nondecreasing.
+            # 2. (base + cnbrs) is sorted with respect to the iteration order of G.
+            # 3. cnbrs is a set of common neighbors of nodes in base.
+            while queue:
+                base, cnbrs = map(list, queue.popleft())
+                if len(base) == size:
+                    yield base
+                for i, u in enumerate(cnbrs):
+                    # Use generators to reduce memory consumption.
+                    queue.append((chain(base, [u]),
+                                  filter(nbrs[u].__contains__,
+                                         islice(cnbrs, i + 1, None))))
+        print(length_of_lexicon(A, 4) + length_of_lexicon(B, 4))
         plt.show()
 
     # Initialization
@@ -104,18 +138,23 @@ class Graph:
         return Graph(gen, self.nodes)
     
     # Accessors
-    
-    def generator(self):
-        """returns a generator that generates a copy"""
-        return lambda r, c: self.graph[r][c]
 
-    def generator2(self, r, c):
+    def getMax(self):
+        """Changes the graph to be the maximum between it and it's complement"""
+        if len(self.edgeList()) < len(self.complement().edgeList()):
+            self.graph = self.complement().graph
+
+    def generator(self, r, c):
         """a generator which builds a copy and then, if the number of nodes is bigger, fills in the difference 
         randomly"""
         try:
             return self.graph[r][c]
         except:
             return random.choice([True, False])
+
+    def deepcopy(self):
+        """Returns a copy of the graph"""
+        return Graph(self.generator, self.nodes)
 
     def __getitem__(self, key):
         if key == 0:
@@ -134,9 +173,9 @@ class Graph:
     
     def getNeighbors(self, node):
         """Returns all nodes distance 1 from the node given as a list of node numbers"""
-        n = self.graph[node - 1] + [False] + [row[node] for row in self.graph[node:]]
+        n = [self.hasEdge(node, i) for i in range(self.nodes)]
         return list(map(lambda ib: ib[0], filter(lambda ib: ib[1], enumerate(n))))
-    
+
     def hasEdge(self, fromNode, toNode):
         if fromNode == toNode:
             return False
@@ -144,9 +183,6 @@ class Graph:
             fromNode, toNode = toNode, fromNode # swap positions
     
         return self.graph[fromNode - 1][toNode]
-
-    ################################################################################
-    # JAMES ADDED THIS
 
     def edgeList(self):
         """Returns all the edges in the graph"""
@@ -180,14 +216,21 @@ class Graph:
             y = random.randint(0, len(self.graph[x]) - 1)
             self.toggleEdge(x, y)
 
+    def toggleRandomEdge(self):
+        x = random.randint(0, self.nodes - 1)
+        y = random.choice(self.getNeighbors(x))
+        self.toggleEdge(x,y)
 
     def toggleEdge(self, row, col):
-        self.graph[row][col] = not self.graph[row][col]
-
+        # Switch the edges, since we need the larger one to be out front
+        if row > col:
+            self.graph[row-1][col] = not self.graph[row-1][col]
+        else:
+            self.graph[col-1][row] = not self.graph[col-1][row]
     ################################################################################
-
+    """
     def findCliques(self, cliqueSize):
-        """returns a tuple of the list of cliques and the list of anti-cliques"""
+        #returns a tuple of the list of cliques and the list of anti-cliques
         cs = list(necklaces(range(0, self.nodes), cliqueSize)) # get all combinations of possible cliques (order matters)
         cs = list(map(lambda c: (c, [(c[i - 1], x) for i, x in enumerate(c)]), cs)) # make pairs of beginning and end points of edges along clique
         cs = list(map(lambda l: (l[0], [self.hasEdge(x[0], x[1]) for x in l[1]]), cs)) # evaluate each of those pairs and see if the edge exists
@@ -197,7 +240,11 @@ class Graph:
         ds = list(map(lambda b: b[0], ds)) # get its associated node tuple (the one that it's been passing along this whole time)
         qs = list(map(lambda b: b[0], qs)) # get its associated node tuple (the one that it's been passing along this whole time)
         return (ds, qs)
-    
+"""
+    def findCliques(self, cliqueSize):
+       """Needs redone"""
+    pass
+
     def fitness(self, cliqueSize):
         """returns all cliques and anti-cliques of a given size found in the graph"""
         # cs = list(necklaces(range(0, self.nodes), cliqueSize)) # get all combinations of possible cliques (order matters)
@@ -212,3 +259,10 @@ class Graph:
 
 def randomGenerator(r, c):
     return random.choice([True, False])
+
+def generatePopulation(startGraph, graphSize, populationSize):
+    """From a prior Ramsey graph, builds a new Ramsey graph"""
+    return [Graph(startGraph.generator, graphSize) for x in range(populationSize)]
+
+a = Graph(randomGenerator, 4)
+a.findCliques(3)

@@ -33,10 +33,10 @@ from evolution import *
 # add graph extension for this test case
 # TODO: adapt to larger format later
 class Graph(Graph):
-    def mutate(self):
-        x = random.randint(0,len(self.graph)-1)
-        y = random.randint(0, len(self.graph[x])-1)
-        self.toggleEdge(x,y)
+    #def mutate(self):
+    #    x = random.randint(0,len(self.graph)-1)
+    #    y = random.randint(0, len(self.graph[x])-1)
+    #    self.toggleEdge(x,y)
     
     def toggleEdge(self, row, col):
         self.graph[row][col] = not self.graph[row][col]
@@ -102,6 +102,7 @@ def ramseyTest(population, numberOfRuns, cliqueSize, size):
 # EXECUTION
 ################################################################################
 
+"""
 def testGraph():
     a = Graph(randomGenerator, 6)
     print(a)
@@ -140,19 +141,10 @@ def testMonkeyEvolve(popSize, iterations, cliqueSize, graphSize):
     print("{0}-Anti-Cliques: {1}".format(cliqueSize, cs[1]))
     print(g)
     g.draw()
-
-if __name__ == "__main__": # if python script is run as an executable
+"""
+#if __name__ == "__main__": # if python script is run as an executable
     # testGraph()
     # print("--------------------------------------------------------------------------------")
     # testDnaGenerator()
     # print("--------------------------------------------------------------------------------")
-    testRamsey(50, 500, 4, 6)
-    print("--------------------------------------------------------------------------------")
-    testMonkeyEvolve(10, 50, 4, 6)
-    print("--------------------------------------------------------------------------------")
-
-
-    
-        
-        
-        
+    #testRamsey(50, 500, 4, 6)

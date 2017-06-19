@@ -95,9 +95,6 @@ class Graph:
             length = sum(1 for x in lexicon_of_size(g, size))
             return length
 
-        def list_of_lexicon(g, size):
-            return list(lexicon_of_size(g, size))
-
         def lexicon_of_size(G, size):
             from collections import deque
             from itertools import chain, islice
@@ -228,22 +225,15 @@ class Graph:
         else:
             self.graph[col-1][row] = not self.graph[col-1][row]
     ################################################################################
-    """
+
     def findCliques(self, cliqueSize):
-        #returns a tuple of the list of cliques and the list of anti-cliques
-        cs = list(necklaces(range(0, self.nodes), cliqueSize)) # get all combinations of possible cliques (order matters)
-        cs = list(map(lambda c: (c, [(c[i - 1], x) for i, x in enumerate(c)]), cs)) # make pairs of beginning and end points of edges along clique
-        cs = list(map(lambda l: (l[0], [self.hasEdge(x[0], x[1]) for x in l[1]]), cs)) # evaluate each of those pairs and see if the edge exists
-        cs = list(map(lambda l: (l[0], all(l[1]), not(any(l[1]))), cs)) # record if the clique is all edges or all non-edges
-        ds = list(filter(lambda b: b[1], cs)) # take only the ones that have all existing edges (cliques)
-        qs = list(filter(lambda b: b[2], cs)) # take only the ones that have all non-existing edges (anti-cliques)
-        ds = list(map(lambda b: b[0], ds)) # get its associated node tuple (the one that it's been passing along this whole time)
-        qs = list(map(lambda b: b[0], qs)) # get its associated node tuple (the one that it's been passing along this whole time)
-        return (ds, qs)
-"""
-    def findCliques(self, cliqueSize):
-       """Needs redone"""
-    pass
+        # Generate a list of all clique possibilities
+        ls = list(combinations(range(0,self.nodes), cliqueSize)) #create all combinations (order doesn't matter)
+        cs = list(map(lambda c: (c, all(self.hasEdge(c[i], c[j]) for i in range(len(c)) for j in range(len(c)) if i!= j)), ls))
+        ds = list(map(lambda c: (c, all(not self.hasEdge(c[i], c[j]) for i in range(len(c)) for j in range(len(c)) if i != j)), ls))
+        cs = list(filter(lambda b: b[1], cs))
+        ds = list(filter(lambda b: b[1], ds))
+        return (cs, ds)
 
     def fitness(self, cliqueSize):
         """returns all cliques and anti-cliques of a given size found in the graph"""
@@ -263,6 +253,3 @@ def randomGenerator(r, c):
 def generatePopulation(startGraph, graphSize, populationSize):
     """From a prior Ramsey graph, builds a new Ramsey graph"""
     return [Graph(startGraph.generator, graphSize) for x in range(populationSize)]
-
-a = Graph(randomGenerator, 4)
-a.findCliques(3)

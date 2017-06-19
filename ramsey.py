@@ -2,6 +2,7 @@ import sys
 
 from graph import *
 from evolution import *
+from bees import *
 
 # TODO: Read the summary of http://ieeexplore.ieee.org/document/5461802/. It 
 # talks a bit about how we can construct counterexamples from prior 

@@ -1,11 +1,8 @@
 from itertools import combinations
-from functools import reduce
+# from functools import reduce
 import random
 import networkx as nx
 import matplotlib.pyplot as plt
-import copy
-
-from extensions import necklaces
 
 class Graph:
     # Instance Variables
@@ -91,6 +88,8 @@ class Graph:
         nx.draw_networkx_labels(A, pos, labels)
         nx.draw_networkx_edges(B, pos, edgelist=antiedges, edge_color = 'b')
 
+        """
+        Networkx clique functions: Used to double check our clique function
         def length_of_lexicon(g, size):
             length = sum(1 for x in lexicon_of_size(g, size))
             return length
@@ -121,6 +120,7 @@ class Graph:
                                   filter(nbrs[u].__contains__,
                                          islice(cnbrs, i + 1, None))))
         print(length_of_lexicon(A, 4) + length_of_lexicon(B, 4))
+        """
         plt.show()
 
     # Initialization
@@ -233,17 +233,13 @@ class Graph:
         ds = list(map(lambda c: (c, all(not self.hasEdge(c[i], c[j]) for i in range(len(c)) for j in range(len(c)) if i != j)), ls))
         cs = list(filter(lambda b: b[1], cs))
         ds = list(filter(lambda b: b[1], ds))
+        cs = list(map(lambda c: c[0], cs))
+        ds = list(map(lambda c: c[0], ds))
+        # cs here denotes the current graph cliques, ds denotes the anti-cliques or the independent sets.
         return (cs, ds)
 
     def fitness(self, cliqueSize):
         """returns all cliques and anti-cliques of a given size found in the graph"""
-        # cs = list(necklaces(range(0, self.nodes), cliqueSize)) # get all combinations of possible cliques (order matters)
-        # cs = list(map(lambda c: (c, [(c[i - 1], x) for i, x in enumerate(c)]), cs)) # make pairs of beginning and end points of edges along clique
-        # cs = list(map(lambda l: (l[0], [self.hasEdge(x[0], x[1]) for x in l[1]]), cs)) # evaluate each of those pairs and see if the edge exists
-        # cs = list(map(lambda l: (l[0], all(l[1]), not(any(l[1]))), cs)) # record if the clique is all edges or all non-edges
-        # cs = list(filter(lambda b: b[1] or b[2], cs)) # take only the ones that have all existing or non-existing edges
-        # cs = list(map(lambda b: b[0], cs)) # get its associated node tuple (the one that it's been passing along this whole time)
-        # return len(cs)
         cliques = self.findCliques(cliqueSize)
         return len(cliques[0]) + len(cliques[1])
 

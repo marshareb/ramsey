@@ -1,5 +1,6 @@
 from graph import *
 import random
+import sys
 
 #Based on the symmetric heuristic, we target the "max graph" in order to reduce that so that the max graph and the min graph
 # are roughly equivalent.
@@ -47,9 +48,11 @@ def bruteForce(graph, cliqueSize):
             bestFitness = bestGraph.fitness(cliqueSize)
     return bestGraph
 
+# Change these functions so that they all use numOfBees, and also buildup?
 
 def workerBee(graph, cliqueSize, numOfBees):
     """Takes the best graph, toggles edges randomly, finds the best fitness among them"""
+    """Remark: It might be better to have it toggle a bunch of random edges instead of just one; i.e. the workerbee progressively toggles edges"""
     dic = {}
     for i in range(numOfBees):
         a = graph.deepcopy()
@@ -87,7 +90,7 @@ def scoutBee(graphSize, cliqueSize):
     return graph
 
 def lazyBee(graph, cliqueSize, numOfBees):
-    """Takes the best graph, toggles an edge, then runs bruteforce until it can't go any further. Returns None if it 
+    """Takes the best graph, toggles an edge, then runs bruteforce until it can't go any further. Returns the same graph if it 
     doesn't find a better edge."""
     bestGraph = graph
     bestFitness = graph.fitness(cliqueSize)
@@ -105,3 +108,73 @@ def lazyBee(graph, cliqueSize, numOfBees):
                 bestGraph = graphc
                 bestFitness = graphc.fitness(cliqueSize)
     return bestGraph
+
+def beeMethod(populationSize, numberOfRuns, cliqueSize, sizeOfGraph):
+    import math
+    # Initialize the bestGraph and bestErr variables.
+    best_graph = Graph(randomGenerator, sizeOfGraph)
+    best_err = best_graph.fitness(cliqueSize)
+    print('Start error: ' + str(best_err))
+
+    # Check to see if the fitness is 0
+    if best_err == 0:
+        return best_graph
+
+    # For now, we have all of the bee populations to be a third of the total population. This will need to be modified
+    #to find that sweet spot.
+    numWorker = math.floor(populationSize * 0.33)
+    numScout = math.floor(populationSize * 0.33)
+    numLazy = math.floor(populationSize * 0.33)
+
+    # Main loop
+    for i in range(numberOfRuns):
+        print("Iteration: " + str(i))
+
+        print('Worker bees')
+        # Run worker bees
+        newGraph = workerBee(best_graph, cliqueSize, numWorker)
+        if newGraph.fitness(cliqueSize) < best_err:
+            best_graph = newGraph
+            best_err = newGraph.fitness(cliqueSize)
+
+        # Check to see if the fitness is 0
+        if best_err == 0:
+            return best_graph
+
+        print('Best error so far: ' + str(best_err))
+        print('Scout bees')
+        # Run scout bees
+        for i in range(numScout):
+            x = scoutBee(sizeOfGraph, cliqueSize)
+            if x.fitness(cliqueSize) < best_err:
+                best_graph = x
+                best_err = x.fitness(cliqueSize)
+
+        # Check to see if the fitness is 0
+        if best_err == 0:
+            return best_graph
+
+        print('Best error so far: ' + str(best_err))
+        print('Lazy bees')
+        # Run lazy bees
+        new_graph = lazyBee(best_graph, cliqueSize, numLazy)
+        if new_graph.fitness(cliqueSize) < best_err:
+            best_graph = new_graph
+            best_err = new_graph.fitness(cliqueSize)
+
+        # Check to see if the fitness is 0
+        if best_err == 0:
+            return best_graph
+
+        #TODO: add evolveByRankedSexualReproduction when it gets stuck after 5 iterations
+
+        print('Best error so far: ' + str(best_err))
+
+    print('Best error: ' + str(best_err))
+    return best_graph
+
+
+
+def buildUpBees(populationSize, numberOfRuns, cliqueSize, startSize, endSize):
+    """Starting from the given start size, keep progressively building Ramsey graphs until you reach the endSize"""
+    pass

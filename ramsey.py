@@ -103,7 +103,6 @@ def ramseyTest(population, numberOfRuns, cliqueSize, size):
 # EXECUTION
 ################################################################################
 
-"""
 def testGraph():
     a = Graph(randomGenerator, 6)
     print(a)
@@ -142,10 +141,14 @@ def testMonkeyEvolve(popSize, iterations, cliqueSize, graphSize):
     print("{0}-Anti-Cliques: {1}".format(cliqueSize, cs[1]))
     print(g)
     g.draw()
-"""
-#if __name__ == "__main__": # if python script is run as an executable
-    # testGraph()
-    # print("--------------------------------------------------------------------------------")
-    # testDnaGenerator()
-    # print("--------------------------------------------------------------------------------")
-    #testRamsey(50, 500, 4, 6)
+
+if __name__ == "__main__": # if python script is run as an executable
+    """
+    testGraph()
+    print("--------------------------------------------------------------------------------")
+    testDnaGenerator()
+    print("--------------------------------------------------------------------------------")
+    testRamsey(50, 500, 4, 6)
+    """
+    x= beeMethod(50, 100, 4, 16)
+    x.draw2()

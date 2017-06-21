@@ -1,6 +1,7 @@
 from graph import *
 import random
 import sys
+from ramsey import *
 
 #Based on the symmetric heuristic, we target the "max graph" in order to reduce that so that the max graph and the min graph
 # are roughly equivalent.
@@ -50,44 +51,70 @@ def bruteForce(graph, cliqueSize):
 
 # Change these functions so that they all use numOfBees, and also buildup?
 
-def workerBee(graph, cliqueSize, numOfBees):
-    """Takes the best graph, toggles edges randomly, finds the best fitness among them"""
-    """Remark: It might be better to have it toggle a bunch of random edges instead of just one; i.e. the workerbee progressively toggles edges"""
+def workerBee(tgraph, cliqueSize, numOfBees):
+    """Takes the best graph, toggles edges randomly, sad and brute forces, finds the best fitness among them"""
     dic = {}
     for i in range(numOfBees):
-        a = graph.deepcopy()
-        a.toggleRandomEdge()
-        dic[a] = a.fitness(cliqueSize)
+        graph = tgraph.deepcopy()
+        graph.toggleRandomEdge()
+
+        isTrue = True
+        # Search and destroys until it can't go anymore
+        while isTrue:
+            graphc = searchAndDestroy(graph, cliqueSize)
+            if graphc == None:
+                isTrue = False
+            elif graphc.fitness(cliqueSize) == graph.fitness(cliqueSize):
+                isTrue = False
+            else:
+                graph = graphc
+            try:
+                graphc.fitness(cliqueSize)
+            except:
+                isTrue = False
+
+        # Brute forces until it can't go anymore
+        isTrue = True
+        while isTrue:
+            graphc = bruteForce(graph, cliqueSize)
+            if graphc.fitness(cliqueSize) == graph.fitness(cliqueSize):
+                isTrue = False
+            else:
+                graph = graphc
+
+        dic[graph] = graph.fitness(cliqueSize)
     return min(dic, key=dic.get)
 
-def scoutBee(graphSize, cliqueSize):
+def scoutBee(graphSize, cliqueSize, numOfBees):
     """Finds a new graph, and brings it down to as low as it can go"""
-    graph = Graph(randomGenerator, graphSize)
-    isTrue = True
+    dic = {}
+    for i in range(numOfBees):
+        graph = Graph(randomGenerator, graphSize)
+        isTrue = True
+        #Search and destroys until it can't go anymore
+        while isTrue:
+            graphc = searchAndDestroy(graph, cliqueSize)
+            if graphc == None:
+                isTrue = False
+            elif graphc.fitness(cliqueSize) == graph.fitness(cliqueSize):
+                isTrue = False
+            else:
+                graph = graphc
+            try:
+                graphc.fitness(cliqueSize)
+            except:
+                isTrue = False
 
-    #Search and destroys until it can't go anymore
-    while isTrue:
-        graphc = searchAndDestroy(graph, cliqueSize)
-        if graphc == None:
-            isTrue = False
-        elif graphc.fitness(cliqueSize) == graph.fitness(cliqueSize):
-            isTrue = False
-        else:
-            graph = graphc
-        try:
-            graphc.fitness(cliqueSize)
-        except:
-            isTrue = False
-
-    #Brute forces until it can't go anymore
-    isTrue = True
-    while isTrue:
-        graphc = bruteForce(graph, cliqueSize)
-        if graphc.fitness(cliqueSize) == graph.fitness(cliqueSize):
-            isTrue = False
-        else:
-            graph = graphc
-    return graph
+        #Brute forces until it can't go anymore
+        isTrue = True
+        while isTrue:
+            graphc = bruteForce(graph, cliqueSize)
+            if graphc.fitness(cliqueSize) == graph.fitness(cliqueSize):
+                isTrue = False
+            else:
+                graph = graphc
+        dic[graph] = graph.fitness(cliqueSize)
+    return min(dic, key=dic.get)
 
 def lazyBee(graph, cliqueSize, numOfBees):
     """Takes the best graph, toggles an edge, then runs bruteforce until it can't go any further. Returns the same graph if it 
@@ -109,11 +136,12 @@ def lazyBee(graph, cliqueSize, numOfBees):
                 bestFitness = graphc.fitness(cliqueSize)
     return bestGraph
 
-def beeMethod(populationSize, numberOfRuns, cliqueSize, sizeOfGraph):
+def beeMethod(populationSize, numberOfRuns, cliqueSize, graph):
     import math
     # Initialize the bestGraph and bestErr variables.
-    best_graph = Graph(randomGenerator, sizeOfGraph)
+    best_graph = graph
     best_err = best_graph.fitness(cliqueSize)
+    sizeOfGraph = graph.nodes
     print('Start error: ' + str(best_err))
 
     # Check to see if the fitness is 0
@@ -122,12 +150,18 @@ def beeMethod(populationSize, numberOfRuns, cliqueSize, sizeOfGraph):
 
     # For now, we have all of the bee populations to be a third of the total population. This will need to be modified
     #to find that sweet spot.
-    numWorker = math.floor(populationSize * 0.33)
-    numScout = math.floor(populationSize * 0.33)
-    numLazy = math.floor(populationSize * 0.33)
+    numWorker = math.floor(populationSize * 0.56)
+    numScout = 3
+    numLazy = math.floor(populationSize * 0.44)
+    count = 0
+
+    print("Number of worker bees: " + str(numWorker))
+    print("Number of scout bees: " + str(numScout))
+    print("Number of lazy bees: " + str(numLazy))
 
     # Main loop
     for i in range(numberOfRuns):
+        tbest_err = best_err
         print("Iteration: " + str(i))
 
         print('Worker bees')
@@ -139,19 +173,20 @@ def beeMethod(populationSize, numberOfRuns, cliqueSize, sizeOfGraph):
 
         # Check to see if the fitness is 0
         if best_err == 0:
+            print('Found winner')
             return best_graph
 
         print('Best error so far: ' + str(best_err))
         print('Scout bees')
         # Run scout bees
-        for i in range(numScout):
-            x = scoutBee(sizeOfGraph, cliqueSize)
-            if x.fitness(cliqueSize) < best_err:
-                best_graph = x
-                best_err = x.fitness(cliqueSize)
+        newGraph = scoutBee(sizeOfGraph, cliqueSize, numScout)
+        if newGraph.fitness(cliqueSize) < best_err:
+            best_graph = newGraph
+            best_err = newGraph.fitness(cliqueSize)
 
         # Check to see if the fitness is 0
         if best_err == 0:
+            print('Found winner')
             return best_graph
 
         print('Best error so far: ' + str(best_err))
@@ -164,12 +199,24 @@ def beeMethod(populationSize, numberOfRuns, cliqueSize, sizeOfGraph):
 
         # Check to see if the fitness is 0
         if best_err == 0:
+            print('Found winner')
             return best_graph
 
-        #TODO: add evolveByRankedSexualReproduction when it gets stuck after 5 iterations
-
         print('Best error so far: ' + str(best_err))
-
+        if tbest_err == best_err:
+            count +=1
+        if count > 5:
+            print('switching')
+            pop = generatePopulation(best_graph, sizeOfGraph, populationSize)
+            ff = lambda x: Graph.fromDna(x).fitness(cliqueSize)
+            a = evolveByRankedSexualReproduction(list(map(lambda m: m.dna(), pop)), ff, numberOfRuns)
+            g = Graph.fromDna(a)
+            if g.fitness(cliqueSize) < best_err:
+                best_graph = g
+                best_err = g.fitness(cliqueSize)
+                count = 0
+            else:
+                count = 0
     print('Best error: ' + str(best_err))
     return best_graph
 
@@ -177,4 +224,14 @@ def beeMethod(populationSize, numberOfRuns, cliqueSize, sizeOfGraph):
 
 def buildUpBees(populationSize, numberOfRuns, cliqueSize, startSize, endSize):
     """Starting from the given start size, keep progressively building Ramsey graphs until you reach the endSize"""
-    pass
+    size = startSize
+    best_graph = beeMethod(populationSize, numberOfRuns, cliqueSize, Graph(randomGenerator, size))
+    while size <= endSize:
+        print('current size: ' + str(size))
+        best_graph = beeMethod(populationSize, numberOfRuns, cliqueSize, best_graph)
+        if best_graph.fitness(cliqueSize) != 0:
+            print('Failed on ' + str(size))
+            return best_graph
+        size +=1
+        best_graph = Graph(best_graph.generator, size)
+    return best_graph

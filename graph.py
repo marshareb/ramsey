@@ -3,6 +3,8 @@ from itertools import combinations
 import random
 import networkx as nx
 import matplotlib.pyplot as plt
+from extensions import flatten, triangleReduction
+
 
 class Graph:
     # Instance Variables
@@ -214,9 +216,12 @@ class Graph:
             self.toggleEdge(x, y)
 
     def toggleRandomEdge(self):
-        x = random.randint(0, self.nodes - 1)
-        y = random.choice(self.getNeighbors(x))
-        self.toggleEdge(x,y)
+        x = self.edgeList()
+        if len(x) == 0:
+            x = self.complement().edgeList()
+        x = random.choice(x)
+        self.toggleEdge(x[0], x[1])
+
 
     def toggleEdge(self, row, col):
         # Switch the edges, since we need the larger one to be out front
@@ -224,6 +229,7 @@ class Graph:
             self.graph[row-1][col] = not self.graph[row-1][col]
         else:
             self.graph[col-1][row] = not self.graph[col-1][row]
+
     ################################################################################
 
     def findCliques(self, cliqueSize):
@@ -243,9 +249,21 @@ class Graph:
         cliques = self.findCliques(cliqueSize)
         return len(cliques[0]) + len(cliques[1])
 
+    def dna(self):  # get a graph's DNA
+        return flatten(self.graph)
+
+    def fromDna(dna):  # birth a graph from DNA
+        t = triangleReduction(len(dna))
+        if t:
+            return Graph(dnaGenerator(dna), t + 1)
+        else:
+            raise Exception("wrong DNA length - must be a triangle number")
 def randomGenerator(r, c):
     return random.choice([True, False])
 
 def generatePopulation(startGraph, graphSize, populationSize):
     """From a prior Ramsey graph, builds a new Ramsey graph"""
     return [Graph(startGraph.generator, graphSize) for x in range(populationSize)]
+
+def dnaGenerator(dna):
+    return lambda r, c: dna[int(r*(r+1)/2+c)]

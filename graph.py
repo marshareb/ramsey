@@ -5,7 +5,6 @@ import networkx as nx
 import matplotlib.pyplot as plt
 from extensions import flatten, triangleReduction
 
-
 class Graph:
     # Instance Variables
     

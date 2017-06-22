@@ -3,9 +3,8 @@ import random
 import sys
 from ramsey import *
 
-#Based on the symmetric heuristic, we target the "max graph" in order to reduce that so that the max graph and the min graph
+# Based on the symmetric heuristic, we target the "max graph" in order to reduce that so that the max graph and the min graph
 # are roughly equivalent.
-
 def searchAndDestroy(graph, cliqueSize):
     """Selects a random clique of a size, toggles edges from that, and then checks the fitness. Returns None if there
     was no improvement"""
@@ -148,10 +147,9 @@ def beeMethod(populationSize, numberOfRuns, cliqueSize, graph):
     if best_err == 0:
         return best_graph
 
-    # For now, we have all of the bee populations to be a third of the total population. This will need to be modified
-    #to find that sweet spot.
+    # Trying to find the sweet spot for the population
     numWorker = math.floor(populationSize * 0.56)
-    numScout = 3
+    numScout = 10
     numLazy = math.floor(populationSize * 0.44)
     count = 0
 
@@ -227,7 +225,7 @@ def buildUpBees(populationSize, numberOfRuns, cliqueSize, startSize, endSize):
     size = startSize
     best_graph = beeMethod(populationSize, numberOfRuns, cliqueSize, Graph(randomGenerator, size))
     while size <= endSize:
-        print('current size: ' + str(size))
+        print('Current size: ' + str(size))
         best_graph = beeMethod(populationSize, numberOfRuns, cliqueSize, best_graph)
         if best_graph.fitness(cliqueSize) != 0:
             print('Failed on ' + str(size))

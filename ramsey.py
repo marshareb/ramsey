@@ -31,18 +31,6 @@ from bees import *
 # TESTING
 ################################################################################
 
-# add graph extension for this test case
-# TODO: adapt to larger format later
-class Graph(Graph):
-    #def mutate(self):
-    #    x = random.randint(0,len(self.graph)-1)
-    #    y = random.randint(0, len(self.graph[x])-1)
-    #    self.toggleEdge(x,y)
-    
-    def toggleEdge(self, row, col):
-        self.graph[row][col] = not self.graph[row][col]
-
-"""NOT OPTIMAL"""
 def ramseyTest(population, numberOfRuns, cliqueSize, size):
     import sys
     import copy
@@ -102,7 +90,7 @@ def ramseyTest(population, numberOfRuns, cliqueSize, size):
 ################################################################################
 # EXECUTION
 ################################################################################
-
+"""
 def testGraph():
     a = Graph(randomGenerator, 6)
     print(a)
@@ -130,8 +118,8 @@ def testRamsey(populationSize, numberOfRuns, cliqueSize, size):
         pop = generatePopulation(a, i+1, populationSize)
         print(pop)
     a.draw2()
-
-def testMonkeyEvolve(popSize, iterations, cliqueSize, graphSize):
+"""
+def MonkeyEvolve(popSize, iterations, cliqueSize, graphSize):
     pop = [Graph(randomGenerator, graphSize) for x in range(popSize)]
     ff = lambda x: Graph.fromDna(x).fitness(cliqueSize)
     a = evolveByRankedSexualReproduction(list(map(lambda m: m.dna(), pop)), ff, iterations)
@@ -141,8 +129,11 @@ def testMonkeyEvolve(popSize, iterations, cliqueSize, graphSize):
     print("{0}-Anti-Cliques: {1}".format(cliqueSize, cs[1]))
     print(g)
     g.draw()
+    g.draw2()
+
 
 if __name__ == "__main__": # if python script is run as an executable
+    import time
     """
     testGraph()
     print("--------------------------------------------------------------------------------")
@@ -150,5 +141,12 @@ if __name__ == "__main__": # if python script is run as an executable
     print("--------------------------------------------------------------------------------")
     testRamsey(50, 500, 4, 6)
     """
-    x= beeMethod(50, 100, 4, 16)
+    #x = MonkeyEvolve(100, 100, 4, 16)
+    start = time.time()
+    x= buildUpBees(200, 10, 4, 6, 16)
+    print("Time elapsed: " + str(time.time() - start))
+    file = open("counterexample_16_4.txt", "w")
+    for i in x.graph:
+        file.write(i + "\n")
+    file.close()
     x.draw2()

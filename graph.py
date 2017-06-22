@@ -213,14 +213,17 @@ class Graph:
             x = random.randint(0, len(self.graph) - 1)
             y = random.randint(0, len(self.graph[x]) - 1)
             self.toggleEdge(x, y)
-
+    
+    # FIXME: the ideal would be to use pointInversion in a DNA state if possible,
+    # otherwise, extend the graph class in evolution.py since that should be where
+    # doing stuff to the graph randomly should go, this is where the notions of
+    # data manipulation and information gathering are
     def toggleRandomEdge(self):
         x = self.edgeList()
         if len(x) == 0:
             x = self.complement().edgeList()
         x = random.choice(x)
         self.toggleEdge(x[0], x[1])
-
 
     def toggleEdge(self, row, col):
         # Switch the edges, since we need the larger one to be out front
@@ -259,6 +262,8 @@ class Graph:
             raise Exception("wrong DNA length - must be a triangle number")
 def randomGenerator(r, c):
     return random.choice([True, False])
+
+# FIXME: is this a repeat? - this stuff should be in evolution.py
 
 def generatePopulation(startGraph, graphSize, populationSize):
     """From a prior Ramsey graph, builds a new Ramsey graph"""

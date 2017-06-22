@@ -1,4 +1,5 @@
 import sys
+import time
 
 from graph import *
 from evolution import *
@@ -90,7 +91,7 @@ def ramseyTest(population, numberOfRuns, cliqueSize, size):
 ################################################################################
 # EXECUTION
 ################################################################################
-"""
+
 def testGraph():
     a = Graph(randomGenerator, 6)
     print(a)
@@ -118,7 +119,7 @@ def testRamsey(populationSize, numberOfRuns, cliqueSize, size):
         pop = generatePopulation(a, i+1, populationSize)
         print(pop)
     a.draw2()
-"""
+
 def MonkeyEvolve(popSize, iterations, cliqueSize, graphSize):
     pop = [Graph(randomGenerator, graphSize) for x in range(popSize)]
     ff = lambda x: Graph.fromDna(x).fitness(cliqueSize)
@@ -132,16 +133,12 @@ def MonkeyEvolve(popSize, iterations, cliqueSize, graphSize):
     g.draw2()
 
 
-if __name__ == "__main__": # if python script is run as an executable
-    import time
-    """
-    testGraph()
-    print("--------------------------------------------------------------------------------")
-    testDnaGenerator()
-    print("--------------------------------------------------------------------------------")
-    testRamsey(50, 500, 4, 6)
-    """
-    #x = MonkeyEvolve(100, 100, 4, 16)
+def testFullSizeGraph():
+    a = Graph(randomGenerator, 43)
+    a.draw()
+    a.draw2()
+
+def testBees():
     start = time.time()
     x= buildUpBees(200, 10, 4, 6, 16)
     print("Time elapsed: " + str(time.time() - start))
@@ -150,3 +147,6 @@ if __name__ == "__main__": # if python script is run as an executable
         file.write(i + "\n")
     file.close()
     x.draw2()
+
+if __name__ == "__main__": # if python script is run as an executable
+    testBees()

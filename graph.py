@@ -1,5 +1,4 @@
 from itertools import combinations
-# from functools import reduce
 import random
 import networkx as nx
 import matplotlib.pyplot as plt
@@ -12,7 +11,7 @@ class Graph:
     
     def __len__(self):
         return self.nodes
-    
+
     def __str__(self): # called with print() or str()
         """draws the graph in a matrix format"""
         # the X's represent nodes which are guaranteed to be false, but are technically not part of the storage of the graph
@@ -88,44 +87,16 @@ class Graph:
         nx.draw_networkx_edges(A, pos, edgelist=edges, edge_color = 'r')
         nx.draw_networkx_labels(A, pos, labels)
         nx.draw_networkx_edges(B, pos, edgelist=antiedges, edge_color = 'b')
-
-        """
-        Networkx clique functions: Used to double check our clique function
-        def length_of_lexicon(g, size):
-            length = sum(1 for x in lexicon_of_size(g, size))
-            return length
-
-        def lexicon_of_size(G, size):
-            from collections import deque
-            from itertools import chain, islice
-            index = {}
-            nbrs = {}
-            for u in G:
-                index[u] = len(index)
-                # Neighbors of u that appear after u in the iteration order of G.
-                nbrs[u] = {v for v in G[u] if v not in index}
-
-            queue = deque(([u], sorted(nbrs[u], key=index.__getitem__)) for u in G)
-
-            # Loop invariants:
-            # 1. len(base) is nondecreasing.
-            # 2. (base + cnbrs) is sorted with respect to the iteration order of G.
-            # 3. cnbrs is a set of common neighbors of nodes in base.
-            while queue:
-                base, cnbrs = map(list, queue.popleft())
-                if len(base) == size:
-                    yield base
-                for i, u in enumerate(cnbrs):
-                    # Use generators to reduce memory consumption.
-                    queue.append((chain(base, [u]),
-                                  filter(nbrs[u].__contains__,
-                                         islice(cnbrs, i + 1, None))))
-        print(length_of_lexicon(A, 4) + length_of_lexicon(B, 4))
-        """
         plt.show()
 
     # Initialization
-    
+
+    def write_to_file(self, filename):
+        """Writes dna to a file"""
+        f = open(filename, 'w')
+        f.write(str(self.dna()))
+        f.close()
+
     def __init__(self, generator, nodes):
         self.nodes = nodes
         self.graph = [[generator(row, col) for col in range(0, row + 1)] for row in range(0, nodes - 1)] # assuming immutability
@@ -188,36 +159,8 @@ class Graph:
         return [(i, j) for i in range(len(self.graph) + 1) for j in range(len(self.graph) + 1) if
                 self.hasEdge(i, j) and j < i]
 
-    def mutate(self, cliqueSize):
-        #TODO: fix this so it ramseyTest or any of the other genetic algorithms actually return counterexamples
-        # for R(4,4) on 6 vertices.
-        import copy
-        fit = self.fitness(cliqueSize)
-        count = 0
-
-        while self.fitness(cliqueSize) != 0:
-            isTrue = True
-            for i in self.edgeList():
-                a = copy.deepcopy(self)
-                a.toggleEdge(i[0]-1,i[1])
-                if a.fitness(cliqueSize) < self.fitness(cliqueSize):
-                    self.graph = a.graph
-                    isTrue = False
-                    count +=1
-                    return None
-            if isTrue == True:
-                break
-        print(count)
-        if self.fitness(cliqueSize) == fit:
-            print('No valid mutation, randomly toggling edge')
-            x = random.randint(0, len(self.graph) - 1)
-            y = random.randint(0, len(self.graph[x]) - 1)
-            self.toggleEdge(x, y)
-    
-    # FIXME: the ideal would be to use pointInversion in a DNA state if possible,
-    # otherwise, extend the graph class in evolution.py since that should be where
-    # doing stuff to the graph randomly should go, this is where the notions of
-    # data manipulation and information gathering are
+    # leaving this in just for the graph bee case, but for all intents and purpose will be using the pointinversion
+    # method
     def toggleRandomEdge(self):
         x = self.edgeList()
         if len(x) == 0:
@@ -232,42 +175,35 @@ class Graph:
         else:
             self.graph[col-1][row] = not self.graph[col-1][row]
 
+    def toggleClique(self, clique):
+        """Toggles a whole clique at once"""
+        list(map(lambda x: self.toggleEdge(x[0],x[1]), list(combinations(clique,2))))
+
     ################################################################################
 
     def findCliques(self, cliqueSize):
-        # Generate a list of all clique possibilities
-        ls = list(combinations(range(0,self.nodes), cliqueSize)) #create all combinations (order doesn't matter)
-        cs = list(map(lambda c: (c, all(self.hasEdge(c[i], c[j]) for i in range(len(c)) for j in range(len(c)) if i!= j)), ls))
-        ds = list(map(lambda c: (c, all(not self.hasEdge(c[i], c[j]) for i in range(len(c)) for j in range(len(c)) if i != j)), ls))
-        cs = list(filter(lambda b: b[1], cs))
-        ds = list(filter(lambda b: b[1], ds))
-        cs = list(map(lambda c: c[0], cs))
-        ds = list(map(lambda c: c[0], ds))
-        # cs here denotes the current graph cliques, ds denotes the anti-cliques or the independent sets.
-        return (cs, ds)
+        from itertools import permutations
+        nbrs = {}
+        for i in range(self.nodes):
+            nbrs[i] = set(self.getNeighbors(i))
+
+        prvsCliqueSize = 2
+        clqs = list(map(lambda c: list(c), self.findCliques(2)[0]))
+        while prvsCliqueSize < cliqueSize and len(clqs) != 0:
+            nclqs = []
+            for k in clqs:
+                d = list(map(lambda c: nbrs[c], k))
+                for i in set.intersection(*map(set,d)):
+                    if i not in k:
+                        nclqs.append(k +[i])
+
+            #Remove all permutations
+            clqs = list(map(lambda c: sorted(c), nclqs))
+            prvsCliqueSize += 1
+        return list(set(map(lambda c: tuple(c), clqs)))
 
     def fitness(self, cliqueSize):
-        """returns all cliques and anti-cliques of a given size found in the graph"""
-        cliques = self.findCliques(cliqueSize)
-        return len(cliques[0]) + len(cliques[1])
+        return len(self.findCliques2(cliqueSize)) + len(self.complement().findCliques2(cliqueSize))
 
-    def dna(self):  # get a graph's DNA
-        return flatten(self.graph)
-
-    def fromDna(dna):  # birth a graph from DNA
-        t = triangleReduction(len(dna))
-        if t:
-            return Graph(dnaGenerator(dna), t + 1)
-        else:
-            raise Exception("wrong DNA length - must be a triangle number")
 def randomGenerator(r, c):
     return random.choice([True, False])
-
-# FIXME: is this a repeat? - this stuff should be in evolution.py
-
-def generatePopulation(startGraph, graphSize, populationSize):
-    """From a prior Ramsey graph, builds a new Ramsey graph"""
-    return [Graph(startGraph.generator, graphSize) for x in range(populationSize)]
-
-def dnaGenerator(dna):
-    return lambda r, c: dna[int(r*(r+1)/2+c)]

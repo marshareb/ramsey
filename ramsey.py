@@ -3,7 +3,6 @@ import time
 
 from graph import *
 from evolution import *
-from bees import *
 
 # TODO: Read the summary of http://ieeexplore.ieee.org/document/5461802/. It 
 # talks a bit about how we can construct counterexamples from prior 
@@ -120,7 +119,7 @@ def testRamsey(populationSize, numberOfRuns, cliqueSize, size):
         print(pop)
     a.draw2()
 
-def MonkeyEvolve(popSize, iterations, cliqueSize, graphSize):
+def testMonkeyEvolve(popSize, iterations, cliqueSize, graphSize):
     pop = [Graph(randomGenerator, graphSize) for x in range(popSize)]
     ff = lambda x: Graph.fromDna(x).fitness(cliqueSize)
     a = evolveByRankedSexualReproduction(list(map(lambda m: m.dna(), pop)), ff, iterations)
@@ -140,12 +139,10 @@ def testFullSizeGraph():
 
 def testBees():
     start = time.time()
-    x= buildUpBees(200, 10, 4, 6, 16)
+    x= buildUpBees(200, 10, 5, 6, 25)
     print("Time elapsed: " + str(time.time() - start))
-    file = open("counterexample_16_4.txt", "w")
-    for i in x.graph:
-        file.write(i + "\n")
-    file.close()
+    x.draw2()
+    x.write_to_file('counterexample_16_4.txt')
     x.draw2()
 
 if __name__ == "__main__": # if python script is run as an executable

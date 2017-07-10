@@ -4,6 +4,11 @@ import networkx as nx
 import matplotlib.pyplot as plt
 from extensions import flatten, triangleReduction
 
+
+def bool_convert(s):
+    s = s.strip()
+    return s == "True"
+
 class Graph:
     # Instance Variables
     
@@ -89,13 +94,23 @@ class Graph:
         nx.draw_networkx_edges(B, pos, edgelist=antiedges, edge_color = 'b')
         plt.show()
 
-    # Initialization
-
     def write_to_file(self, filename):
         """Writes dna to a file"""
         f = open(filename, 'w')
-        f.write(str(self.dna()))
+        for i in self.dna():
+            f.write(str(i) + "\n")
         f.close()
+
+    def read_from_file(self, filename, size_of_graph):
+        """Reads a dna from a file"""
+        f = open(filename, 'r')
+        dna= []
+        with open(filename) as f:
+            for line in f:
+                dna.append(bool_convert(line))
+        return Graph(dnaGenerator(dna), size_of_graph)
+
+    # Initialization
 
     def __init__(self, generator, nodes):
         self.nodes = nodes
@@ -181,18 +196,20 @@ class Graph:
 
     ################################################################################
 
+    #Reference:  http://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=1559964&isnumber=33129
+
     def findCliques(self, cliqueSize):
-        from itertools import permutations
         nbrs = {}
         for i in range(self.nodes):
             nbrs[i] = set(self.getNeighbors(i))
 
         prvsCliqueSize = 2
-        clqs = list(map(lambda c: list(c), self.findCliques(2)[0]))
+        clqs = list(map(lambda c: list(c), self.edgeList()))
+
         while prvsCliqueSize < cliqueSize and len(clqs) != 0:
             nclqs = []
             for k in clqs:
-                d = list(map(lambda c: nbrs[c], k))
+                d = map(lambda c: nbrs[c], k)
                 for i in set.intersection(*map(set,d)):
                     if i not in k:
                         nclqs.append(k +[i])
@@ -203,7 +220,29 @@ class Graph:
         return list(set(map(lambda c: tuple(c), clqs)))
 
     def fitness(self, cliqueSize):
-        return len(self.findCliques2(cliqueSize)) + len(self.complement().findCliques2(cliqueSize))
+        return len(self.findCliques(cliqueSize)) + len(self.complement().findCliques(cliqueSize))
+
+    #Moved over here since the ramsey file struggles with finding the dna function.
+    def dna(self): # get a graph's DNA
+        return [self.hasEdge(i,j) for i in range(self.nodes) for j in range(self.nodes) if i < j]
+
+
+    # DNA BIT FORMAT:
+    # The new format is a boolean bit which builds consecutively starting from the zero node.
+
+    # EXAMPLE: Graph of size 3 which has the edge list [(0,1), (1,2)]
+    # [True, False, True] <-> [(0,1), (0,2), (1,2)]
+
+
+    def fromDna(self, dna): # birth a graph from DNA
+        t = triangleReduction(len(dna))
+        if t:
+            return Graph(dnaGenerator(dna), t+1)
+        else:
+            raise Exception("wrong DNA length - must be a triangle number")
 
 def randomGenerator(r, c):
     return random.choice([True, False])
+
+def dnaGenerator(dna):
+    return lambda r, c: dna[int(r*(r+1)/2+c)]

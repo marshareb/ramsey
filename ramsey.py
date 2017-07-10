@@ -91,6 +91,7 @@ def ramseyTest(population, numberOfRuns, cliqueSize, size):
 # EXECUTION
 ################################################################################
 
+'''
 def testGraph():
     a = Graph(randomGenerator, 6)
     print(a)
@@ -137,13 +138,16 @@ def testFullSizeGraph():
     a.draw()
     a.draw2()
 
-def testBees():
+'''
+
+def Bees():
     start = time.time()
-    x= buildUpBees(200, 10, 5, 6, 25)
+    x= buildUpBees(150, 800, 25, 4, 12, 17)
     print("Time elapsed: " + str(time.time() - start))
     x.draw2()
-    x.write_to_file('counterexample_16_4.txt')
+    if x.fitness(4) == 0:
+        x.write_to_file('counterexample_17_4.txt')
     x.draw2()
 
 if __name__ == "__main__": # if python script is run as an executable
-    testBees()
+    Bees()

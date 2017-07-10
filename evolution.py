@@ -4,35 +4,22 @@ from math import ceil
 import sys
 from extensions import flatten, triangleReduction
 from graph import *
+from multiprocessing.dummy import Pool as ThreadPool
+
+
+pool = ThreadPool(4)
+
 
 ################################################################################
 # GRAPH EXTENSION
 ################################################################################
-
-class Graph(Graph):
-    def dna(self): # get a graph's DNA
-        return [self.hasEdge(i,j) for i in range(self.nodes) for j in range(self.nodes) if i < j]
-
-    # DNA BIT FORMAT:
-    # The new format is a boolean bit which builds consecutively starting from the zero node.
-
-    # EXAMPLE: Graph of size 3 which has the edge list [(0,1), (1,2)]
-    # [True, False, True] <-> [(0,1), (0,2), (1,2)]
-
-
-    def fromDna(self, dna): # birth a graph from DNA
-        t = triangleReduction(len(dna))
-        if t:
-            return Graph(dnaGenerator(dna), t+1)
-        else:
-            raise Exception("wrong DNA length - must be a triangle number")
 
 def dnaGenerator(dna):
     return lambda r, c: dna[int(r*(r+1)/2+c)]
 
 def generatePopulation(startGraph, graphSize, populationSize):
     """From a prior Ramsey graph, builds a new Ramsey graph"""
-    return [Graph(startGraph.generator, graphSize) for x in range(populationSize)]
+    return [Graph(startGraph.generator, graphSize) for i in range(populationSize)]
 
 ################################################################################
 # TRANSFORMATIONS
@@ -138,18 +125,24 @@ def evolveByRankedSexualReproductionWithCarryOverAndRandomMutations(initialPopul
 
 # Based on the symmetric heuristic, we target the "max graph" in order to reduce that so that the max graph and the min graph
 # are roughly equivalent.
+
 def searchAndDestroy(graph, cliqueSize):
     """Selects a random clique of a size, toggles edges from that, and then checks the fitness. Returns None if there
     was no improvement"""
-    """ISSUE: it's very slow right now. Generally, if it doesn't find the clique right away, it won't find it at all."""
+
     graph.getMax()
     bestFitness = graph.fitness(cliqueSize)
-    list_of_cliques = graph.findCliques(cliqueSize)[0]
-    for i in list_of_cliques:
+    list_of_cliques = graph.findCliques(cliqueSize)
+
+    def test_graph(clique):
         copygraph = graph.deepcopy()
-        copygraph.toggleClique(i)
-        if copygraph.fitness(cliqueSize) < bestFitness:
-            return copygraph
+        copygraph.toggleClique(clique)
+        return copygraph
+
+    results = sorted(pool.map(test_graph, list_of_cliques), key=lambda x: x.fitness(cliqueSize))
+    if len(results) != 0 and results[0].fitness(cliqueSize) < bestFitness:
+        return results[0]
+
     return None
 
 def bruteForce(graph, cliqueSize):
@@ -157,18 +150,15 @@ def bruteForce(graph, cliqueSize):
     graph.getMax()
     bestFitness = graph.fitness(cliqueSize)
     bestGraph = graph.deepcopy()
-    for i in graph.edgeList():
-        graphc = graph.deepcopy()
-        graphc.toggleEdge(i[0], i[1])
-        if graphc.fitness(cliqueSize) < bestFitness:
-            bestGraph = graphc
-            bestFitness = bestGraph.fitness(cliqueSize)
-    for i in graph.complement().edgeList():
-        graphc = graph.deepcopy()
-        graphc.toggleEdge(i[0], i[1])
-        if graphc.fitness(cliqueSize) < bestFitness:
-            bestGraph = graphc
-            bestFitness = bestGraph.fitness(cliqueSize)
+
+    def test_graph(edge):
+        copygraph = graph.deepcopy()
+        copygraph.toggleEdge(edge[0], edge[1])
+        return copygraph
+
+    results = sorted(pool.map(test_graph, list(combinations(range(0, graph.nodes), 2))), key=lambda x: x.fitness(cliqueSize))
+    if len(results) != 0 and results[0].fitness(cliqueSize) < bestFitness:
+        return results[0]
     return bestGraph
 
 # Change these functions so that they all use numOfBees, and also buildup?
@@ -176,10 +166,9 @@ def bruteForce(graph, cliqueSize):
 def workerBee(tgraph, cliqueSize, numOfBees):
     """Takes the best graph, toggles edges randomly, sad and brute forces, finds the best fitness among them"""
     dic = {}
+    graph = tgraph.deepcopy()
+    graph.toggleRandomEdge()
     for i in range(numOfBees):
-        graph = tgraph.deepcopy()
-        graph.toggleRandomEdge()
-
         isTrue = True
         # Search and destroys until it can't go anymore
         while isTrue:
@@ -205,15 +194,17 @@ def workerBee(tgraph, cliqueSize, numOfBees):
                 graph = graphc
 
         dic[graph] = graph.fitness(cliqueSize)
-    return min(dic, key=dic.get)
+        yield min(dic, key=dic.get)
 
 def scoutBee(graphSize, cliqueSize, numOfBees):
     """Finds a new graph, and brings it down to as low as it can go"""
     dic = {}
     for i in range(numOfBees):
         graph = Graph(randomGenerator, graphSize)
+
         isTrue = True
         #Search and destroys until it can't go anymore
+
         while isTrue:
             graphc = searchAndDestroy(graph, cliqueSize)
             if graphc == None:
@@ -228,6 +219,7 @@ def scoutBee(graphSize, cliqueSize, numOfBees):
                 isTrue = False
 
         #Brute forces until it can't go anymore
+
         isTrue = True
         while isTrue:
             graphc = bruteForce(graph, cliqueSize)
@@ -236,23 +228,24 @@ def scoutBee(graphSize, cliqueSize, numOfBees):
             else:
                 graph = graphc
         dic[graph] = graph.fitness(cliqueSize)
-    return min(dic, key=dic.get)
+        print('finish')
+        yield min(dic, key=dic.get)
 
 def lazyBee(graph, cliqueSize, numOfBees):
     """Takes the best graph, toggles an edge, then runs bruteforce until it can't go any further. Returns the same graph if it 
     doesn't find a better edge."""
     bestGraph = graph
     bestFitness = graph.fitness(cliqueSize)
-    count = 0
     isTrue = True
     while isTrue:
-        count +=1
         isTrue = False
         for i in range(numOfBees):
             graphc = graph.deepcopy()
             graphc.toggleRandomEdge()
-            graphc = bruteForce(graphc, cliqueSize)
-            if graphc.fitness(cliqueSize) < bestFitness:
+            graphc = searchAndDestroy(graphc, cliqueSize)
+            if graphc == None:
+                pass
+            elif graphc.fitness(cliqueSize) < bestFitness:
                 isTrue = True
                 bestGraph = graphc
                 bestFitness = graphc.fitness(cliqueSize)
@@ -260,6 +253,7 @@ def lazyBee(graph, cliqueSize, numOfBees):
 
 def beeMethod(populationSize, numberOfRuns, cliqueSize, graph):
     import math
+
     # Initialize the bestGraph and bestErr variables.
     best_graph = graph
     best_err = best_graph.fitness(cliqueSize)
@@ -271,9 +265,9 @@ def beeMethod(populationSize, numberOfRuns, cliqueSize, graph):
         return best_graph
 
     # Trying to find the sweet spot for the population
-    numWorker = math.floor(populationSize * 0.44)
-    numScout = math.floor(populationSize * 0.22)
-    numLazy = math.floor(populationSize * 0.44)
+    numWorker = math.floor(populationSize * 0.5)
+    numScout = math.floor(populationSize * 0.1)
+    numLazy = math.floor(populationSize * 0.3)
     count = 0
 
     print("Number of worker bees: " + str(numWorker))
@@ -282,28 +276,17 @@ def beeMethod(populationSize, numberOfRuns, cliqueSize, graph):
 
     # Main loop
     for i in range(numberOfRuns):
+
         tbest_err = best_err
         print("Iteration: " + str(i))
 
         print('Worker bees')
         # Run worker bees
-        newGraph = workerBee(best_graph, cliqueSize, numWorker)
-        if newGraph.fitness(cliqueSize) < best_err:
-            best_graph = newGraph
-            best_err = newGraph.fitness(cliqueSize)
-
-        # Check to see if the fitness is 0
-        if best_err == 0:
-            print('Found winner')
-            return best_graph
-
-        print('Best error so far: ' + str(best_err))
-        print('Scout bees')
-        # Run scout bees
-        newGraph = scoutBee(sizeOfGraph, cliqueSize, numScout)
-        if newGraph.fitness(cliqueSize) < best_err:
-            best_graph = newGraph
-            best_err = newGraph.fitness(cliqueSize)
+        for i in workerBee(best_graph, cliqueSize, numWorker):
+            if i.fitness(cliqueSize) < best_err:
+                best_graph = i
+                best_err = i.fitness(cliqueSize)
+                break
 
         # Check to see if the fitness is 0
         if best_err == 0:
@@ -312,7 +295,9 @@ def beeMethod(populationSize, numberOfRuns, cliqueSize, graph):
 
         print('Best error so far: ' + str(best_err))
         print('Lazy bees')
+
         # Run lazy bees
+
         new_graph = lazyBee(best_graph, cliqueSize, numLazy)
         if new_graph.fitness(cliqueSize) < best_err:
             best_graph = new_graph
@@ -326,36 +311,51 @@ def beeMethod(populationSize, numberOfRuns, cliqueSize, graph):
         print('Best error so far: ' + str(best_err))
         if tbest_err == best_err:
             count +=1
-        if count > 5:
-            print('switching')
-            pop = generatePopulation(best_graph, sizeOfGraph, populationSize)
-            ff = lambda x: Graph.fromDna(x).fitness(cliqueSize)
-            a = evolveByRankedSexualReproduction(list(map(lambda m: m.dna(), pop)), ff, numberOfRuns)
-            g = Graph.fromDna(a)
-            if g.fitness(cliqueSize) < best_err:
-                best_graph = g
-                best_err = g.fitness(cliqueSize)
+        print('count: ' + str(count))
+        if count >= 10:
+
+            # Applies the scout bee if the worker and lazy bees haven't found a counterexample yet.
+            print('Scout bees')
+
+            for i in workerBee(Graph(randomGenerator, sizeOfGraph), cliqueSize, numScout):
+                if i.fitness(cliqueSize) < best_err:
+                    best_graph = i
+                    best_err = i.fitness(cliqueSize)
+                    break
+
+            # Check to see if the fitness is 0
+            if best_err == 0:
+                print('Found winner')
+                return best_graph
+
+            if tbest_err != best_err:
                 count = 0
-            else:
-                count = 0
+
+            print('Best error so far: ' + str(best_err))
+
     print('Best error: ' + str(best_err))
     return best_graph
 
-def buildUpBees(populationSize, numberOfRuns, cliqueSize, startSize, endSize):
+def buildUpBees(populationSize, graphPop, numberOfRuns, cliqueSize, startSize, endSize):
+    import time
     """Starting from the given start size, keep progressively building Ramsey graphs until you reach the endSize"""
     size = startSize
     best_graph = beeMethod(populationSize, numberOfRuns, cliqueSize, Graph(randomGenerator, size))
     while size <= endSize:
         print('Current size: ' + str(size))
-        best_graph = beeMethod(populationSize, numberOfRuns, cliqueSize, best_graph)
+        print('Generating population...')
+        # The 50 is currently temporary.
+        pop = generatePopulation(best_graph, size, graphPop)
+        pop.sort(key = lambda x: x.fitness(cliqueSize))
+        for i in pop[:20]:
+            start = time.time()
+            best_graph = beeMethod(populationSize, numberOfRuns, cliqueSize, i)
+            if best_graph.fitness(cliqueSize) == 0:
+                break
         if best_graph.fitness(cliqueSize) != 0:
             print('Failed on ' + str(size))
             return best_graph
         size +=1
-        best_graph = Graph(best_graph.generator, size)
+        print("Elapsed time:")
+        print(time.time() - start)
     return best_graph
-
-#***********************************************************************************************************************
-# All was done using graphs, now switching to DNA
-def getGraphSize(DNA):
-    return triangleReduction(len(DNA)) + 1

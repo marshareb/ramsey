@@ -150,5 +150,8 @@ def Bees():
     x.draw2()
 
 if __name__ == "__main__":
-    x = readFromFile("counterexample_16_4.txt", 17)
-    print(x.fitness(4))
+    # An example of the simulated annealing for R(4)
+    x = simulatedAnnealing(100, 17, 4)
+    # An example of building up the bees for R(4)
+    Bees()
+    # An example for genetic algorithms

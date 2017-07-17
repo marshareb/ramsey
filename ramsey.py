@@ -91,21 +91,20 @@ def ramseyTest(population, numberOfRuns, cliqueSize, size):
 # EXECUTION
 ################################################################################
 
-'''
-def testGraph():
+def graph():
     a = Graph(randomGenerator, 6)
     print(a)
     print(a.findCliques(3))
     print(a.fitness(3))
     a.draw()
 
-def testDnaGenerator():
+def dnaGenerator():
     a = Graph(dnaGenerator([True, True, True, True, True, True]), 4)
     print(a)
     print(a.fitness(3))
     a.draw()
 
-def testRamsey(populationSize, numberOfRuns, cliqueSize, size):
+def Ramsey(populationSize, numberOfRuns, cliqueSize, size):
     pop = [Graph(randomGenerator, 1) for x in range(populationSize)]
     for i in range(1, size+1):
         a = ramseyTest(pop, numberOfRuns, cliqueSize, i)
@@ -120,7 +119,7 @@ def testRamsey(populationSize, numberOfRuns, cliqueSize, size):
         print(pop)
     a.draw2()
 
-def testMonkeyEvolve(popSize, iterations, cliqueSize, graphSize):
+def monkeyEvolve(popSize, iterations, cliqueSize, graphSize):
     pop = [Graph(randomGenerator, graphSize) for x in range(popSize)]
     ff = lambda x: Graph.fromDna(x).fitness(cliqueSize)
     a = evolveByRankedSexualReproduction(list(map(lambda m: m.dna(), pop)), ff, iterations)
@@ -133,12 +132,10 @@ def testMonkeyEvolve(popSize, iterations, cliqueSize, graphSize):
     g.draw2()
 
 
-def testFullSizeGraph():
+def fullSizeGraph():
     a = Graph(randomGenerator, 43)
     a.draw()
     a.draw2()
-
-'''
 
 def Bees():
     start = time.time()
@@ -150,8 +147,14 @@ def Bees():
     x.draw2()
 
 if __name__ == "__main__":
+    print("Running through examples.")
+    print("Note that they might not find counterexamples since they rely on elements of randomness.")
+    print("Initializing simulated annealing...")
     # An example of the simulated annealing for R(4)
     x = simulatedAnnealing(100, 17, 4)
+    print("Initializing swarm algorithms...")
     # An example of building up the bees for R(4)
     Bees()
-    # An example for genetic algorithms
+    print("initializing genetic algorithms...")
+    # An example for genetic algorithms for R(4)
+    monkeyEvolve(100, 100, 4, 17)

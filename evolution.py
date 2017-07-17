@@ -410,7 +410,7 @@ def neighbor(graph, cliqueSize):
     return x[0]
 
 def annealFitness(graph, cliqueSize):
-    return sum([graph.clique_difference(i) for i in range(2,cliqueSize)]) + graph.fitness(cliqueSize)
+    return sum([graph.cliqueDifference(i) for i in range(2,cliqueSize)]) + graph.fitness(cliqueSize)
 
 
 # BASIC ASSESS PROBABILITY FUNCTION, IMPROVE OVER TIME.

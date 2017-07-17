@@ -22,4 +22,4 @@ TBD
 
 ## Acknowledgements
 
-Thanks to William Marrujo for his help and guidance, to Dr. Mark Ward for his inspiration, and to Dr. David McReynolds for his guidance. This work is supported by NSF grant DSM #1246818.
+Thanks to William Marrujo for his help and guidance, to Dr. Mark Ward for his inspiration and support, and to Dr. David McReynolds for his guidance. This work is supported by NSF grant DSM #1246818.

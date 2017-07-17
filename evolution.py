@@ -1,8 +1,5 @@
-import random
-import operator
 from math import ceil
 import sys
-from extensions import flatten, triangleReduction
 from graph import *
 from multiprocessing.dummy import Pool as ThreadPool
 
@@ -60,6 +57,7 @@ def crossover(mom, dad):
 ################################################################################
 
 def evaluateGeneration(population, fitnessFunction):
+    """Finds the """
     return [(fitnessFunction(member), member) for member in population]
 
 def evolveByRandomMutation(): # Bacteria!
@@ -118,13 +116,13 @@ def evolveByRankedSexualReproductionWithCarryOverAndRandomMutations(initialPopul
         # until population size is the same
         
         # print & iterate
-
 ################################################################################
-# BEES
+# BASIC SEARCH FUNCTIONS
 ################################################################################
 
 # Based on the symmetric heuristic, we target the "max graph" in order to reduce that so that the max graph and the min graph
 # are roughly equivalent.
+
 
 def searchAndDestroy(graph, cliqueSize):
     """Selects a random clique of a size, toggles edges from that, and then checks the fitness. Returns None if there
@@ -161,7 +159,10 @@ def bruteForce(graph, cliqueSize):
         return results[0]
     return bestGraph
 
-# Change these functions so that they all use numOfBees, and also buildup?
+
+################################################################################
+# BEES
+################################################################################
 
 def workerBee(tgraph, cliqueSize, numOfBees):
     """Takes the best graph, toggles edges randomly, sad and brute forces, finds the best fitness among them"""
@@ -170,6 +171,7 @@ def workerBee(tgraph, cliqueSize, numOfBees):
     graph.toggleRandomEdge()
     for i in range(numOfBees):
         isTrue = True
+
         # Search and destroys until it can't go anymore
         while isTrue:
             graphc = searchAndDestroy(graph, cliqueSize)
@@ -267,8 +269,7 @@ def beeMethod(populationSize, numberOfRuns, cliqueSize, graph):
     # Trying to find the sweet spot for the population
     numWorker = math.floor(populationSize * 0.5)
     numScout = math.floor(populationSize * 0.1)
-    numLazy = math.floor(populationSize * 0.3)
-    count = 0
+    numLazy = populationSize - numScout - numWorker
 
     print("Number of worker bees: " + str(numWorker))
     print("Number of scout bees: " + str(numScout))
@@ -286,12 +287,28 @@ def beeMethod(populationSize, numberOfRuns, cliqueSize, graph):
             if i.fitness(cliqueSize) < best_err:
                 best_graph = i
                 best_err = i.fitness(cliqueSize)
+            if i.fitness(cliqueSize) == 0:
                 break
 
         # Check to see if the fitness is 0
         if best_err == 0:
             print('Found winner')
             return best_graph
+
+        print('Best error so far: ' + str(best_err))
+
+        print('Scout bees')
+        for i in workerBee(Graph(randomGenerator, sizeOfGraph), cliqueSize, numScout):
+            if i.fitness(cliqueSize) < best_err:
+                best_graph = i
+                best_err = i.fitness(cliqueSize)
+                break
+
+        # Check to see if the fitness is 0
+        if best_err == 0:
+            print('Found winner')
+            return best_graph
+
 
         print('Best error so far: ' + str(best_err))
         print('Lazy bees')
@@ -309,29 +326,6 @@ def beeMethod(populationSize, numberOfRuns, cliqueSize, graph):
             return best_graph
 
         print('Best error so far: ' + str(best_err))
-        if tbest_err == best_err:
-            count +=1
-        print('count: ' + str(count))
-        if count >= 10:
-
-            # Applies the scout bee if the worker and lazy bees haven't found a counterexample yet.
-            print('Scout bees')
-
-            for i in workerBee(Graph(randomGenerator, sizeOfGraph), cliqueSize, numScout):
-                if i.fitness(cliqueSize) < best_err:
-                    best_graph = i
-                    best_err = i.fitness(cliqueSize)
-                    break
-
-            # Check to see if the fitness is 0
-            if best_err == 0:
-                print('Found winner')
-                return best_graph
-
-            if tbest_err != best_err:
-                count = 0
-
-            print('Best error so far: ' + str(best_err))
 
     print('Best error: ' + str(best_err))
     return best_graph
@@ -340,7 +334,12 @@ def buildUpBees(populationSize, graphPop, numberOfRuns, cliqueSize, startSize, e
     import time
     """Starting from the given start size, keep progressively building Ramsey graphs until you reach the endSize"""
     size = startSize
-    best_graph = beeMethod(populationSize, numberOfRuns, cliqueSize, Graph(randomGenerator, size))
+    print("Current size: " + str(size))
+    print("Generating population...")
+    pop = [Graph(randomGenerator, size) for i in range(graphPop)]
+    pop.sort(key=lambda x: x.fitness(cliqueSize))
+    best_graph = beeMethod(populationSize, numberOfRuns, cliqueSize, pop[0])
+    size +=1
     while size <= endSize:
         print('Current size: ' + str(size))
         print('Generating population...')
@@ -359,3 +358,79 @@ def buildUpBees(populationSize, graphPop, numberOfRuns, cliqueSize, startSize, e
         print("Elapsed time:")
         print(time.time() - start)
     return best_graph
+
+
+################################################################################
+# SIMULATED ANNEALING
+################################################################################
+
+""" The following parameters are considered:"""
+""" STATESPACE: All Graphs of a given size"""
+""" ENERGY (FITNESS) GOAL: Obviously 0 """
+""" THE CANDIDATE GENERATOR PROCEDURE: neighbor() takes a random graph and breaks it down as far as it goes"""
+""" ACCEPTANCE PROBABILITY FUNCTION: assess_probability() takes the graph, assess it compared to the best graph, and
+    moves accordingly."""
+""" ANNEALING SCHEDULE: temperature() generates the temperature according to the graph and time."""
+""" INIT TEMP: temp"""
+import math
+
+def generateTestGraph(graph, cliqueSize):
+    graph.toggleRandomEdge()
+
+    isTrue = True
+    # Search and destroys until it can't go anymore
+
+    while isTrue:
+        graphc = searchAndDestroy(graph, cliqueSize)
+        if graphc == None:
+            isTrue = False
+        elif graphc.fitness(cliqueSize) == graph.fitness(cliqueSize):
+            isTrue = False
+        else:
+            graph = graphc
+        try:
+            graphc.fitness(cliqueSize)
+        except:
+            isTrue = False
+
+    # Brute forces until it can't go anymore
+
+    isTrue = True
+    while isTrue:
+        graphc = bruteForce(graph, cliqueSize)
+        if graphc.fitness(cliqueSize) == graph.fitness(cliqueSize):
+            isTrue = False
+        else:
+            graph = graphc
+    return graph
+
+def neighbor(graph, cliqueSize):
+    x = [generateTestGraph(graph, cliqueSize) for i in range(3)]
+    x.sort(key=lambda x: annealFitness(x, cliqueSize))
+    return x[0]
+
+def annealFitness(graph, cliqueSize):
+    return sum([graph.clique_difference(i) for i in range(2,cliqueSize)]) + graph.fitness(cliqueSize)
+
+
+# BASIC ASSESS PROBABILITY FUNCTION, IMPROVE OVER TIME.
+def assessProbability(graph, temperature, best_err, cliqueSize):
+    return math.exp((best_err - annealFitness(graph, cliqueSize))/temperature)
+
+def simulatedAnnealing(start_temp, size, cliqueSize):
+    import random
+    current_graph = Graph(randomGenerator, size)
+    current_err = annealFitness(current_graph, cliqueSize)
+    for i in range(start_temp):
+        temp = start_temp - i
+        print('temp: ' + str(temp))
+        print('best_err: ' + str(current_err))
+        new_graph = neighbor(current_graph, cliqueSize)
+        if new_graph.fitness(cliqueSize) == 0:
+            print('found winner')
+            return new_graph
+        elif assessProbability(new_graph, temp, current_err, cliqueSize) > random.random():
+            current_graph = new_graph
+            current_err = annealFitness(new_graph, cliqueSize)
+    print(current_err)
+    return current_graph

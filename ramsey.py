@@ -142,7 +142,7 @@ def testFullSizeGraph():
 
 def Bees():
     start = time.time()
-    x= buildUpBees(150, 800, 25, 4, 12, 17)
+    x= buildUpBees(1000, 800, 100, 4, 15, 17)
     print("Time elapsed: " + str(time.time() - start))
     x.draw2()
     if x.fitness(4) == 0:
@@ -150,4 +150,5 @@ def Bees():
     x.draw2()
 
 if __name__ == "__main__": # if python script is run as an executable
-    Bees()
+    x = readFromFile("counterexample_16_4.txt", 17)
+    print(x.fitness(4))

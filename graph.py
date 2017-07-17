@@ -2,12 +2,7 @@ from itertools import combinations
 import random
 import networkx as nx
 import matplotlib.pyplot as plt
-from extensions import flatten, triangleReduction
-
-
-def bool_convert(s):
-    s = s.strip()
-    return s == "True"
+from extensions import triangleReduction
 
 class Graph:
     # Instance Variables
@@ -26,7 +21,7 @@ class Graph:
         return self.__str__() # defer to a single display function
 
     def draw(self):
-        """draws the node in a visual format"""
+        """Draws the graph using a Furchterman Reignold layout."""
         
         # Gather graph information
         nodes = list(range(self.nodes))
@@ -67,7 +62,7 @@ class Graph:
         plt.show()
 
     def draw2(self):
-        """Draws both colorings on the graph"""
+        """Draws the graph using a ciruclar layout."""
 
         # Gather graph information
         nodes = list(range(self.nodes))
@@ -94,21 +89,19 @@ class Graph:
         nx.draw_networkx_edges(B, pos, edgelist=antiedges, edge_color = 'b')
         plt.show()
 
-    def write_to_file(self, filename):
-        """Writes dna to a file"""
+
+    # DNA BIT FORMAT:
+    # The format is a boolean bit which builds consecutively starting from the zero node.
+
+    # EXAMPLE: Graph of size 3 which has the edge list [(0,1), (1,2)]
+    # [True, False, True] <-> [(0,1), (0,2), (1,2)]
+
+    def writeToFile(self, filename):
+        """Writes dna to a file."""
         f = open(filename, 'w')
         for i in self.dna():
             f.write(str(i) + "\n")
         f.close()
-
-    def read_from_file(self, filename, size_of_graph):
-        """Reads a dna from a file"""
-        f = open(filename, 'r')
-        dna= []
-        with open(filename) as f:
-            for line in f:
-                dna.append(bool_convert(line))
-        return Graph(dnaGenerator(dna), size_of_graph)
 
     # Initialization
 
@@ -117,27 +110,27 @@ class Graph:
         self.graph = [[generator(row, col) for col in range(0, row + 1)] for row in range(0, nodes - 1)] # assuming immutability
     
     def complement(self):
-        """Returns a complement graph"""
+        """Returns a complement graph."""
         gen = lambda r, c: not self.graph[r][c]
         return Graph(gen, self.nodes)
     
     # Accessors
 
     def getMax(self):
-        """Changes the graph to be the maximum between it and it's complement"""
+        """Changes the graph to be the graph which has the most edges between it and it's complement."""
         if len(self.edgeList()) < len(self.complement().edgeList()):
             self.graph = self.complement().graph
 
     def generator(self, r, c):
-        """a generator which builds a copy and then, if the number of nodes is bigger, fills in the difference 
-        randomly"""
+        """A generator which builds a copy and then, if the number of nodes is bigger, fills in the difference 
+        randomly."""
         try:
             return self.graph[r][c]
         except:
             return random.choice([True, False])
 
     def deepcopy(self):
-        """Returns a copy of the graph"""
+        """Returns a copy of the graph."""
         return Graph(self.generator, self.nodes)
 
     def __getitem__(self, key):
@@ -151,16 +144,18 @@ class Graph:
     # Methods
     
     def degreeOfNode(self, node):
+        """Returns the degree of a node."""
         r = self.graph[node - 1]
         c = [row[node] for row in self.graph[node:]]
         return sum(r + c)
     
     def getNeighbors(self, node):
-        """Returns all nodes distance 1 from the node given as a list of node numbers"""
+        """Returns all nodes distance 1 from the node given as a list of node numbers."""
         n = [self.hasEdge(node, i) for i in range(self.nodes)]
         return list(map(lambda ib: ib[0], filter(lambda ib: ib[1], enumerate(n))))
 
     def hasEdge(self, fromNode, toNode):
+        """Returns True if there is an edge between the nodes, and False otherwise."""
         if fromNode == toNode:
             return False
         elif fromNode < toNode:
@@ -177,6 +172,7 @@ class Graph:
     # leaving this in just for the graph bee case, but for all intents and purpose will be using the pointinversion
     # method
     def toggleRandomEdge(self):
+        """Toggles a random edge from the graph."""
         x = self.edgeList()
         if len(x) == 0:
             x = self.complement().edgeList()
@@ -184,6 +180,7 @@ class Graph:
         self.toggleEdge(x[0], x[1])
 
     def toggleEdge(self, row, col):
+        """Toggles a selected edge from a graph."""
         # Switch the edges, since we need the larger one to be out front
         if row > col:
             self.graph[row-1][col] = not self.graph[row-1][col]
@@ -199,6 +196,7 @@ class Graph:
     #Reference:  http://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=1559964&isnumber=33129
 
     def findCliques(self, cliqueSize):
+        """ Finds all cliques from a graph using a buildup method. """
         nbrs = {}
         for i in range(self.nodes):
             nbrs[i] = set(self.getNeighbors(i))
@@ -209,7 +207,7 @@ class Graph:
         while prvsCliqueSize < cliqueSize and len(clqs) != 0:
             nclqs = []
             for k in clqs:
-                d = map(lambda c: nbrs[c], k)
+                d = list(map(lambda c: nbrs[c], k))
                 for i in set.intersection(*map(set,d)):
                     if i not in k:
                         nclqs.append(k +[i])
@@ -220,29 +218,53 @@ class Graph:
         return list(set(map(lambda c: tuple(c), clqs)))
 
     def fitness(self, cliqueSize):
+        """Finds fitness in the classical sense 
+        (number of cliques of the graph plus the number of cliques in the complement graph)."""
         return len(self.findCliques(cliqueSize)) + len(self.complement().findCliques(cliqueSize))
 
-    #Moved over here since the ramsey file struggles with finding the dna function.
+    def cliqueDifference(self, cliqueSize):
+        """Finds the clique difference (the absolute value of the number of cliques in the graph minus the number of 
+        cliques in the complement graph)"""
+        return abs(len(self.findCliques(cliqueSize)) - len(self.complement().findCliques(cliqueSize)))
+
     def dna(self): # get a graph's DNA
+        """Gets a graphs DNA (a bit of boolean values which represent the nodes/edges of a graph)."""
         return [self.hasEdge(i,j) for i in range(self.nodes) for j in range(self.nodes) if i < j]
 
+def fromDna(dna):
+    """Creates a graph from a DNA bit."""
+    t = triangleReduction(len(dna))
+    if t:
+        edges = [(i,j) for i in range(t+1) for j in range(t+1) if i < j ]
+        edges = [(edges[i], dna[i]) for i in range(len(dna))]
+        edges = list(filter(lambda x : x[1], edges))
+        edges = list(map(lambda x: x[0], edges))
+        g = Graph(randomGenerator, t+1)
+        for i in g.edgeList():
+            if i not in edges:
+                g.toggleEdge(i[0], i[1])
+        for i in edges:
+            if i not in g.edgeList():
+                g.toggleEdge(i[0], i[1])
+        return g
+    else:
+        raise Exception("Wrong DNA length - must be a triangle number.")
 
-    # DNA BIT FORMAT:
-    # The new format is a boolean bit which builds consecutively starting from the zero node.
+def bool_convert(s):
+    """Converts a string boolean value to an actual boolean value"""
+    s = s.strip()
+    return s == "True"
 
-    # EXAMPLE: Graph of size 3 which has the edge list [(0,1), (1,2)]
-    # [True, False, True] <-> [(0,1), (0,2), (1,2)]
-
-
-    def fromDna(self, dna): # birth a graph from DNA
-        t = triangleReduction(len(dna))
-        if t:
-            return Graph(dnaGenerator(dna), t+1)
-        else:
-            raise Exception("wrong DNA length - must be a triangle number")
+def readFromFile(filename, size_of_graph):
+    """Reads a dna from a file."""
+    f = open(filename, 'r')
+    dna= []
+    with open(filename) as f:
+        for line in f:
+            dna.append(bool_convert(line))
+    return fromDna(dna)
 
 def randomGenerator(r, c):
+    """Random generator for a graph"""
     return random.choice([True, False])
 
-def dnaGenerator(dna):
-    return lambda r, c: dna[int(r*(r+1)/2+c)]

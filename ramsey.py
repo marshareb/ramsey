@@ -149,6 +149,6 @@ def Bees():
         x.write_to_file('counterexample_17_4.txt')
     x.draw2()
 
-if __name__ == "__main__": # if python script is run as an executable
+if __name__ == "__main__":
     x = readFromFile("counterexample_16_4.txt", 17)
     print(x.fitness(4))

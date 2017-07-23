@@ -4,17 +4,15 @@ import time
 from graph import *
 from evolution import *
 
+<<<<<<< HEAD
+=======
 # TODO: Read the summary of http://ieeexplore.ieee.org/document/5461802/. It 
 # talks a bit about how we can construct counterexamples from prior 
 # counterexamples.
 
+>>>>>>> 123d1b56adff4e37bd5a44eb6c9e3e10f0d425e3
 # NOTE: We only care about what are called diagonal Ramsey numbers (since R(5,5)
 # is our end goal).
-# Let's create a sufficiently random population of graphs. For crossover 
-# (or mating) we simply take random values from each graph. If the fitness is 
-# better than our worst fitness, we then add this graph to our population
-# We should also have an efficient way to output the data to a text file for analysis
-
 ################################################################################
 # TESTING
 ################################################################################

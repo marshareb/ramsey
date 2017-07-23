@@ -106,9 +106,11 @@ class Graph:
     # Initialization
 
     def __init__(self, generator, nodes):
+        if nodes <= 0:
+            raise Exception("Number of nodes needs to be greater than 0.")
         self.nodes = nodes
         self.graph = [[generator(row, col) for col in range(0, row + 1)] for row in range(0, nodes - 1)] # assuming immutability
-    
+
     def complement(self):
         """Returns a complement graph."""
         gen = lambda r, c: not self.graph[r][c]
@@ -193,7 +195,7 @@ class Graph:
 
     ################################################################################
 
-    #Reference:  http://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=1559964&isnumber=33129
+    #Reference:  [4] Zhang, Yun, et al. "Genome-scale computational approaches to memory-intensive applications in systems biology." Supercomputing, 2005. Proceedings of the ACM/IEEE SC 2005 Conference. IEEE, 2005.
 
     def findCliques(self, cliqueSize):
         """ Finds all cliques from a graph using a buildup method. """

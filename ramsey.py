@@ -6,19 +6,7 @@ from evolution import *
 
 # TODO: Read the summary of http://ieeexplore.ieee.org/document/5461802/. It 
 # talks a bit about how we can construct counterexamples from prior 
-# counterexamples. Maybe James needs to prove that all Ramsey graphs Gi exist as
-# subgraphs of graphs G(i+1)?
-
-# TODO: In the checking for all cliques, we can take a large subset instead of 
-# scanning the entire thing, narrowing down all possibilities to a smaller 
-# subset to search through.
-
-# TODO: Need to add some way to merge graphs. Merging graphs involves selecting 
-# a random number of edges from one graph and a random number of edges from 
-# another graph and then putting those edges together (Edges in this case 
-# includes the possibility of not having an edge. Essentially grabs a random 
-# number of boolean values from one graph and a random number of boolean values 
-# from another graph and merges them this way.)
+# counterexamples.
 
 # NOTE: We only care about what are called diagonal Ramsey numbers (since R(5,5)
 # is our end goal).
@@ -31,7 +19,7 @@ from evolution import *
 # TESTING
 ################################################################################
 
-def ramseyTest(population, numberOfRuns, cliqueSize, size):
+def ramseyTest(population, numberOfRuns, cliqueSize, size, fitness):
     import sys
     import copy
     # Dictionary to hold all of the different graphs associated to their fitness number
@@ -44,7 +32,7 @@ def ramseyTest(population, numberOfRuns, cliqueSize, size):
 
     # Generate all the graphs, figure out bestFitness and worstFitness
     for a in population:
-        pop[a] = a.fitness(cliqueSize)
+        pop[a] = fitness(a, cliqueSize)
         if pop[a] < bestFitness:
             bestFitness = pop[a]
             bestGraph = copy.deepcopy(a)
@@ -60,8 +48,8 @@ def ramseyTest(population, numberOfRuns, cliqueSize, size):
         
         # Mutate each graph
         for k in pop:
-            k.mutate(cliqueSize)
-            pop[k] = k.fitness(cliqueSize)
+            k.toggleRandomEdge()
+            pop[k] = fitness(k, cliqueSize)
             if pop[k] < bestFitness:
                 bestFitness = pop[k]
                 bestGraph = copy.deepcopy(k)
@@ -75,7 +63,7 @@ def ramseyTest(population, numberOfRuns, cliqueSize, size):
             if pop[i] == worstFitness:
                 del pop[i]
                 a = Graph(randomGenerator, size)
-                pop[a] = a.fitness(cliqueSize)
+                pop[a] = fitness(a, cliqueSize)
 
         # That way, we can keep track of if it's running and how long each iteration is taking
         print("Iteration: {0} - Best Fitness: {1} - worstFitness {2}".format(run, bestFitness, worstFitness))
@@ -84,12 +72,7 @@ def ramseyTest(population, numberOfRuns, cliqueSize, size):
         worstFitness = 0
 
     # Once we've cycled through all of the numberOfRuns, we conclude by saying how close we got to our goal of 0.
-    print(bestFitness)
     return bestGraph
-
-################################################################################
-# EXECUTION
-################################################################################
 
 def graph():
     a = Graph(randomGenerator, 6)
@@ -121,9 +104,9 @@ def Ramsey(populationSize, numberOfRuns, cliqueSize, size):
 
 def monkeyEvolve(popSize, iterations, cliqueSize, graphSize):
     pop = [Graph(randomGenerator, graphSize) for x in range(popSize)]
-    ff = lambda x: Graph.fromDna(x).fitness(cliqueSize)
+    ff = lambda x: fromDna(x).fitness(cliqueSize)
     a = evolveByRankedSexualReproduction(list(map(lambda m: m.dna(), pop)), ff, iterations)
-    g = Graph.fromDna(a)
+    g = fromDna(a)
     cs = g.findCliques(cliqueSize)
     print("{0}-Cliques: {1}".format(cliqueSize, cs[0]))
     print("{0}-Anti-Cliques: {1}".format(cliqueSize, cs[1]))
@@ -137,24 +120,62 @@ def fullSizeGraph():
     a.draw()
     a.draw2()
 
-def Bees():
+def standardBees():
     start = time.time()
-    x= buildUpBees(1000, 800, 100, 4, 15, 17)
+    x= buildUpBees(1000, 800, 100, 4, 12, 17, fitness)
     print("Time elapsed: " + str(time.time() - start))
     x.draw2()
-    if x.fitness(4) == 0:
+    if fitness(x, 4) == 0:
+        x.write_to_file('counterexample_17_4.txt')
+    x.draw2()
+
+def symmetricBees():
+    start = time.time()
+    x= buildUpBees(1000, 800, 100, 4, 12, 17, symmetricFitness)
+    print("Time elapsed: " + str(time.time() - start))
+    x.draw2()
+    if fitness(x, 4) == 0:
         x.write_to_file('counterexample_17_4.txt')
     x.draw2()
 
 if __name__ == "__main__":
     print("Running through examples.")
     print("Note that they might not find counterexamples since they rely on elements of randomness.")
+
+    print("Generic Ramsey Test...")
+    x = ramseyTest([Graph(randomGenerator, 17) for i in range(500)], 20, 4, 17, fitness)
+    print("Best error: " + str(fitness(x,4)))
+
     print("Initializing simulated annealing...")
-    # An example of the simulated annealing for R(4)
-    x = simulatedAnnealing(100, 17, 4)
+
+    print("Symmetric ordered simulated annealing...")
+    x = simulatedAnnealing(500, 17, 4, symmetricFitness)
+    print("Best error: " + str(fitness(x,4)))
+
+    print("Standard ordered simulated annealing...")
+    x = simulatedAnnealing(500, 17, 4, fitness)
+    print("Best error: " + str(fitness(x, 4)))
+
+    print("Symmetric random simulated annealing...")
+    x = simulatedAnnealingRandom(250, 17, 4, symmetricFitness)
+    print("Best error: " + str(fitness(x,4)))
+
+    print("Standard random simulated annealing...")
+    x = simulatedAnnealingRandom(250, 17, 4, fitness)
+    print("Best error: " + str(fitness(x,4)))
+
+
     print("Initializing swarm algorithms...")
-    # An example of building up the bees for R(4)
-    Bees()
-    print("initializing genetic algorithms...")
+
+    print("Symmetric bees...")
+    symmetricBees()
+
+    #print("Standard bees...")
+    #standardBees()
+
+    print("Initializing genetic algorithms...")
     # An example for genetic algorithms for R(4)
-    monkeyEvolve(100, 100, 4, 17)
+
+    print("Monkey evolution...")
+    x = monkeyEvolve(100, 100, 4, 17)
+    print("Best error: " + str(fitness(x,4)))

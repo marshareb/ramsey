@@ -26,38 +26,38 @@ class Graph:
         # Gather graph information
         nodes = list(range(self.nodes))
         labels = {x: x for x in nodes}
-        potentialEdges = list(combinations(range(self.nodes), 2)) # potential edges
-        edges = [(e, self.hasEdge(e[0], e[1])) for e in potentialEdges] # associate edge with wether it exists
+        potential_edges = list(combinations(range(self.nodes), 2)) # potential edges
+        edges = [(e, self.hasEdge(e[0], e[1])) for e in potential_edges] # associate edge with wether it exists
         edges = list(filter(lambda x: x[1], edges)) # filter out nonexistant edges
         edges = list(map(lambda x: x[0], edges)) # get back associated edge tuple
-        antiedges = [e for e in potentialEdges if e not in edges] # get complement list
+        antiedges = [e for e in potential_edges if e not in edges] # get complement list
 
         # Create graph object
-        A = nx.Graph() # create nx graph
-        A.add_nodes_from(nodes) # add nodes
-        A.add_edges_from(edges) # add edges
+        a = nx.Graph() # create nx graph
+        a.add_nodes_from(nodes) # add nodes
+        a.add_edges_from(edges) # add edges
         
-        B = nx.Graph() # create complement graph
-        B.add_nodes_from(nodes) # add nodes (same)
-        B.add_edges_from(antiedges) # add edges (opposite)
+        b = nx.Graph() # create complement graph
+        b.add_nodes_from(nodes) # add nodes (same)
+        b.add_edges_from(antiedges) # add edges (opposite)
         
         # Draw Graph
-        posA = nx.fruchterman_reingold_layout(A)
-        posB = nx.fruchterman_reingold_layout(B)
+        pos_a = nx.fruchterman_reingold_layout(a)
+        pos_b = nx.fruchterman_reingold_layout(b)
         
         plt.figure(1)
         
         plt.subplot(1, 2, 1)
         plt.title("Graph")
-        nx.draw_networkx_nodes(A, posA, nodelist=nodes)
-        nx.draw_networkx_edges(A, posA, edgelist=edges)
-        nx.draw_networkx_labels(A, posA, labels)
+        nx.draw_networkx_nodes(a, pos_a, nodelist=nodes)
+        nx.draw_networkx_edges(a, pos_a, edgelist=edges)
+        nx.draw_networkx_labels(a, pos_a, labels)
         
         plt.subplot(1, 2, 2)
         plt.title("Complement")
-        nx.draw_networkx_nodes(B, posB, nodelist=nodes)
-        nx.draw_networkx_edges(B, posB, edgelist=antiedges)
-        nx.draw_networkx_labels(B, posB, labels)
+        nx.draw_networkx_nodes(b, pos_b, nodelist=nodes)
+        nx.draw_networkx_edges(b, pos_b, edgelist=antiedges)
+        nx.draw_networkx_labels(b, pos_b, labels)
         
         plt.show()
 
@@ -67,26 +67,26 @@ class Graph:
         # Gather graph information
         nodes = list(range(self.nodes))
         labels = {x: x for x in nodes}
-        potentialEdges = list(combinations(range(self.nodes), 2))  # potential edges
-        edges = [(e, self.hasEdge(e[0], e[1])) for e in potentialEdges]  # associate edge with wether it exists
+        potential_edges = list(combinations(range(self.nodes), 2))  # potential edges
+        edges = [(e, self.hasEdge(e[0], e[1])) for e in potential_edges]  # associate edge with wether it exists
         edges = list(filter(lambda x: x[1], edges))  # filter out nonexistant edges
         edges = list(map(lambda x: x[0], edges))  # get back associated edge tuple
-        antiedges = [e for e in potentialEdges if e not in edges]  # get complement list
+        antiedges = [e for e in potential_edges if e not in edges]  # get complement list
 
-        A = nx.Graph()
-        A.add_nodes_from(nodes)
-        A.add_edges_from(edges)
+        a = nx.Graph()
+        a.add_nodes_from(nodes)
+        a.add_edges_from(edges)
 
-        B = nx.Graph()
-        B.add_nodes_from(nodes)
-        B.add_edges_from(antiedges)
+        b = nx.Graph()
+        b.add_nodes_from(nodes)
+        b.add_edges_from(antiedges)
 
-        pos = nx.circular_layout(A)
+        pos = nx.circular_layout(a)
 
-        nx.draw_networkx_nodes(A, pos, nodelist=nodes)
-        nx.draw_networkx_edges(A, pos, edgelist=edges, edge_color = 'r')
-        nx.draw_networkx_labels(A, pos, labels)
-        nx.draw_networkx_edges(B, pos, edgelist=antiedges, edge_color = 'b')
+        nx.draw_networkx_nodes(a, pos, nodelist=nodes)
+        nx.draw_networkx_edges(a, pos, edgelist=edges, edge_color = 'r')
+        nx.draw_networkx_labels(a, pos, labels)
+        nx.draw_networkx_edges(b, pos, edgelist=antiedges, edge_color = 'b')
         plt.show()
 
 
@@ -217,14 +217,9 @@ class Graph:
             prvsCliqueSize += 1
         return list(set(map(lambda c: tuple(c), clqs)))
 
-    def fitness(self, cliqueSize):
-        """Finds fitness in the classical sense 
-        (number of cliques of the graph plus the number of cliques in the complement graph)."""
-        return len(self.findCliques(cliqueSize)) + len(self.complement().findCliques(cliqueSize))
-
     def cliqueDifference(self, cliqueSize):
         """Finds the clique difference (the absolute value of the number of cliques in the graph minus the number of 
-        cliques in the complement graph)"""
+        cliques in the complement graph)."""
         return abs(len(self.findCliques(cliqueSize)) - len(self.complement().findCliques(cliqueSize)))
 
     def dna(self): # get a graph's DNA
@@ -250,7 +245,7 @@ def fromDna(dna):
     else:
         raise Exception("Wrong DNA length - must be a triangle number.")
 
-def bool_convert(s):
+def boolConvert(s):
     """Converts a string boolean value to an actual boolean value"""
     s = s.strip()
     return s == "True"
@@ -261,10 +256,19 @@ def readFromFile(filename, size_of_graph):
     dna= []
     with open(filename) as f:
         for line in f:
-            dna.append(bool_convert(line))
+            dna.append(boolConvert(line))
     return fromDna(dna)
 
 def randomGenerator(r, c):
     """Random generator for a graph"""
     return random.choice([True, False])
 
+def symmetricFitness(graph, cliqueSize):
+    """Finds the fitness in the symmetric sense (sum of the difference between cliques up to the number plus 
+    the number of cliques in the graph and its complement)."""
+    return sum([graph.cliqueDifference(i) for i in range(2, cliqueSize)]) + fitness(graph, cliqueSize)
+
+def fitness(graph, cliqueSize):
+    """Finds fitness in the classical sense 
+    (number of cliques of the graph plus the number of cliques in the complement graph)."""
+    return len(graph.findCliques(cliqueSize)) + len(graph.complement().findCliques(cliqueSize))

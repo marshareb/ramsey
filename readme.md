@@ -8,21 +8,21 @@ that the lower bound for R(5) is 43. We would like to use these methods to impro
 
 First clone the repo, then run
 
-'''
+```
 pip install -r requirements.txt 
-'''
+```
 
 Then, to see all of the examples, run 
 
-'''
+```
 python3 ramsey.py 
-'''
+```
 
 or 
 
-'''
+```
 python ramsey.py 
-'''
+```
 
 Depending on if you have Python 2. Note that this was created in Python 3. If you would like to edit the default settings, you can find them in ramsey.py.
 

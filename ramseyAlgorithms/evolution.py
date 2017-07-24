@@ -2,6 +2,7 @@ from math import ceil
 import sys
 from graph import *
 from multiprocessing.dummy import Pool as ThreadPool
+import math
 # Initialize the number of pools that we will be using. Default is 4.
 pool = ThreadPool(6)
 
@@ -10,11 +11,11 @@ pool = ThreadPool(6)
 ################################################################################
 
 def dnaGenerator(dna):
-    """Generates a graph from a dna bit"""
+    """Generates a graph from a dna bit."""
     return lambda r, c: dna[int(r*(r+1)/2+c)]
 
 def generatePopulation(startGraph, graphSize, populationSize):
-    """From a prior Ramsey graph, builds a list of new Ramsey Graphs"""
+    """From a prior Ramsey graph, builds a list of new Ramsey Graphs."""
     return [Graph(startGraph.generator, graphSize) for i in range(populationSize)]
 
 ################################################################################
@@ -22,7 +23,7 @@ def generatePopulation(startGraph, graphSize, populationSize):
 ################################################################################
 
 def pointInversion(dna):
-    """Randomly flips a single dna nucleotide. Alternative to randomToggle"""
+    """Randomly flips a single dna nucleotide. Alternative to randomToggle."""
     i = random.randint(0, len(dna)-1) # choose random point
     dna[i] = not dna[i] # invert point
     return dna
@@ -61,7 +62,7 @@ def evaluateGeneration(population, fitnessFunction):
     return [(fitnessFunction(member), member) for member in population]
 
 def evolveByRandomMutation(initialPopulation, fitnessFunction, maxIterations=-1): # Bacteria!
-    """Evolves a population by randomly mutating its members"""
+    """Evolves a population by randomly mutating its members."""
     population = initialPopulation
     if maxIterations == -1:
         maxIterations = sys.maxsize
@@ -87,7 +88,7 @@ def evolveByRandomMutation(initialPopulation, fitnessFunction, maxIterations=-1)
     return generation[0]
 
 def evolveByRandomSexualReproduction(initialPopulation, fitnessFunction, maxIterations=-1): # Sponges!
-    """Evolves a population by randomly mating its members"""
+    """Evolves a population by randomly mating its members."""
     population = initialPopulation
     if maxIterations == -1:
         maxIterations = sys.maxsize
@@ -116,7 +117,7 @@ def evolveByRandomSexualReproduction(initialPopulation, fitnessFunction, maxIter
     return generation[0]
     
 def evolveByRankedSexualReproduction(initialPopulation, fitnessFunction, maxIterations=-1): # Monkeys!
-    """Evolves a population by mating members with adjacent fitness"""
+    """Evolves a population by mating members with adjacent fitness."""
     population = initialPopulation
     if maxIterations == -1:
         maxIterations = sys.maxsize
@@ -144,13 +145,14 @@ def evolveByRankedSexualReproduction(initialPopulation, fitnessFunction, maxIter
     return generation[0]
 
 def evolveByRankedSexualReproductionWithCarryOverAndRandomMutations(initialPopulation, fitnessFunction, maxIterations=-1): # Birds!
-    """Evolves a population by mating members with a similar fitness and keeping the best members from the previous generation"""
+    """Evolves a population by mating members with a similar fitness and keeping the best members from the previous 
+    generation. Currently unfinished."""
     population = initialPopulation
     if maxIterations == -1:
         maxIterations = sys.maxsize
     
     for i in range(maxIterations):
-        generation = evaluateGeneration(population, fitnessFunction) # FIXME: do not hardcode numbers (except perhaps referencing them from somewhere else)
+        generation = evaluateGeneration(population, fitnessFunction) # FIXME: do not hardcode numbers
         generation.sort(key=lambda x: x[0])
         
         # keep first 10% of members
@@ -194,7 +196,7 @@ def searchAndDestroy(graph, cliqueSize, fitness):
     return None
 
 def bruteForce(graph, cliqueSize, fitness):
-    """Toggles all edges, checks which one gave the lowest fitness, returns that"""
+    """Toggles all edges, checks which one gave the lowest fitness, returns that."""
     graph.getMax()
     best_fitness = fitness(graph, cliqueSize)
     best_graph = graph.deepcopy()
@@ -217,7 +219,7 @@ def bruteForce(graph, cliqueSize, fitness):
 ################################################################################
 
 def workerBee(tgraph, cliqueSize, numOfBees, fitness):
-    """Takes the best graph, toggles edges randomly, sad and brute forces, finds the best fitness among them"""
+    """Takes the best graph, toggles edges randomly, sad and brute forces, finds the best fitness among them."""
     dic = {}
     graph = tgraph.deepcopy()
     graph.toggleRandomEdge()
@@ -382,6 +384,7 @@ def beeMethod(populationSize, numberOfRuns, cliqueSize, graph, fitness):
     return best_graph
 
 def buildUpBees(populationSize, graphPop, numberOfRuns, cliqueSize, startSize, endSize, fitness):
+    """Builds up a counterexample using prior graphs as the start for the bees algorithm."""
     import time
     start = time.time()
     """Starting from the given start size, keep progressively building Ramsey graphs until you reach the endSize"""
@@ -417,17 +420,6 @@ def buildUpBees(populationSize, graphPop, numberOfRuns, cliqueSize, startSize, e
 # SIMULATED ANNEALING
 ################################################################################
 
-""" The following parameters are considered:"""
-""" STATESPACE: All Graphs of a given size"""
-""" ENERGY (FITNESS) GOAL: Obviously 0 """
-""" THE CANDIDATE GENERATOR PROCEDURE: neighbor() takes a random graph and breaks it down as far as it goes"""
-""" ACCEPTANCE PROBABILITY FUNCTION: assess_probability() takes the graph, assess it compared to the best graph, and
-    moves accordingly."""
-""" ANNEALING SCHEDULE: temperature() generates the temperature according to the graph and time."""
-""" INIT TEMP: temp"""
-
-import math
-
 def generateTestGraph(graph, cliqueSize, fitness):
     """Finds a neighbor graph."""
     graph.toggleRandomEdge()
@@ -460,7 +452,7 @@ def generateTestGraph(graph, cliqueSize, fitness):
     return graph
 
 def neighbor(graph, cliqueSize, fitness):
-    """Tries to find the best neighbor graph out of a selection of neighbor graphs"""
+    """Tries to find the best neighbor graph out of a selection of neighbor graphs."""
     x = [generateTestGraph(graph, cliqueSize, fitness) for i in range(3)]
     x.sort(key=lambda x: fitness(x, cliqueSize))
     return x[0]
@@ -471,7 +463,8 @@ def assessProbability(graph, temperature, best_err, cliqueSize, fitness):
     return math.exp((best_err - fitness(graph, cliqueSize))/temperature)
 
 def simulatedAnnealing(start_temp, size, cliqueSize, fitness):
-    """Finds the global minimum using simulated annealing. Attempts to lower randomness by selecting optimal neighbors."""
+    """Finds the global minimum using simulated annealing. Attempts to lower randomness by selecting optimal 
+    neighbors."""
     import random
     current_graph = Graph(randomGenerator, size)
     current_err = fitness(current_graph, cliqueSize)

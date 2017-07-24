@@ -31,7 +31,7 @@ For example, for a graph of size 3 which has the edge list [(0,1), (1,2)], we ha
 
 [True, False, True] <-> [(0,1), (0,2), (1,2)]
 
-## Use
+## Installation and Examples
 
 First clone the repo, then run
 
@@ -39,7 +39,7 @@ First clone the repo, then run
 pip install -r requirements.txt 
 ```
 
-Then, to see all of the examples, run 
+Then, to see all of the preconstructed examples, run
 
 ```
 python3 ramsey.py 
@@ -59,7 +59,7 @@ import ramseyAlgorithms
 ```
 
 
-## Examples
+## Usage
 
 First, run
 
@@ -104,7 +104,7 @@ where n is as prior.
 If you wanted to try finding a counterexample to R(4,4) at n=17, and you wanted to build up from n=12, you could use
 
 ```
-buildUpBees(800, 100, 200, 4, 12, 17)
+ra.buildUpBees(800, 100, 200, 4, 12, 17)
 ```
 
 This gives you a population size of 800 bees, it checks through 100 graphs, and it'll do 200 iterations before ending.

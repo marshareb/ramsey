@@ -258,7 +258,7 @@ def boolConvert(s):
     s = s.strip()
     return s == "True"
 
-def readFromFile(filename, size_of_graph):
+def readFromFile(filename):
     """Reads a dna from a file."""
     f = open(filename, 'r')
     dna= []

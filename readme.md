@@ -109,6 +109,19 @@ buildUpBees(800, 100, 200, 4, 12, 17)
 
 This gives you a population size of 800 bees, it checks through 100 graphs, and it'll do 200 iterations before ending.
 
+If you wanted to save a graph, you would run
+
+```
+a.writeToFile('filename.txt')
+```
+
+and if you wanted to then read that file you would run
+
+```
+ra.readFromFile('filename.txt')
+```
+
+where filename.txt is whatever you wish to name your graph.
 
 ## References
 
@@ -129,5 +142,3 @@ Supercomputing, 2005. Proceedings of the ACM/IEEE SC 2005 Conference. IEEE, 2005
 
 Thanks to William Marrujo for his help and guidance, to Dr. Mark Ward for his inspiration and support, and to Dr. David
 McReynolds for his guidance. This work is supported by NSF grant DSM #1246818.
-
-

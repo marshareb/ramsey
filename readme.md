@@ -8,27 +8,27 @@ these methods to improve this from 43 to 44.
 
 ## Terminology
 
-Clique: We say that we have a k-clique if there is a subset of nodes of size k such that each node is adjacent to each
+**Clique:** We say that we have a k-clique if there is a subset of nodes of size k such that each node is adjacent to each
 other node in the clique.
 
-Fitness: A measure of distance from our goal, which is to have 0 k-cliques.
+**Fitness:** A measure of distance from our goal, which is to have 0 k-cliques.
 
-Standard Fitness: It measures the distance from our goal by checking the difference between the number of k-cliques of
+**Standard Fitness:** It measures the distance from our goal by checking the difference between the number of k-cliques of
 the graph and it's complement.
 
-Symmetric Fitness: It measure the distance from our goal by ensuring that the graph and its complement are symmetric for
+**Symmetric Fitness:** It measure the distance from our goal by ensuring that the graph and its complement are symmetric for
 all cliques up to k, and then measures the difference of the k-cliques between the graph and its complement.
 
-Mutation: A toggle of some attribute on the graph. In our case, it generally has to do with some collection of edges.
+**Mutation:** A toggle of some attribute on the graph. In our case, it generally has to do with some collection of edges.
 
-Standard Mutation: Toggling a single edge on a graph.
+**Standard Mutation:** Toggles a single edge on a graph.
 
-Clique Mutation: Toggling an entire clique on a graph.
+**Clique Mutation:** Toggles an entire clique on a graph.
 
-DNA: A boolean bit which models the edges of a graph. The format for the DNA bit in our program is it starts from (0,0)
+**DNA:** A boolean bit which models the edges of a graph. The format for the DNA bit in our program is it starts from (0,0)
 and goes through all combinations of nodes, where it is of the form (i,j) where i < j, and there are no repeated edges.
+For example, for a graph of size 3 which has the edge list [(0,1), (1,2)], we have
 
-EXAMPLE: For a graph of size 3 which has the edge list [(0,1), (1,2)], we have
 [True, False, True] <-> [(0,1), (0,2), (1,2)]
 
 ## Use
@@ -59,13 +59,17 @@ settings, you can find them in ramsey.py.
 
 In order to generate a random example, run 
 
+```
 a = Graph(randomGenerator, n)
+```
 
 where n is a natural number greater than 0.
 
 If you wanted to try finding a counterexample to R(4,4) at n=17, and you wanted to build up from n=12, you could use
 
+```
 buildUpBees(800, 100, 200, 4, 12, 17)
+```
 
 This gives you a population size of 800 bees, it checks through 100 graphs, and it'll do 200 iterations before ending.
 

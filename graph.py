@@ -4,21 +4,33 @@ import networkx as nx
 import matplotlib.pyplot as plt
 from extensions import triangleReduction
 
+# DNA BIT FORMAT:
+# The format is a boolean bit which builds consecutively starting from the zero node.
+
+# EXAMPLE: Graph of size 3 which has the edge list [(0,1), (1,2)]
+# [True, False, True] <-> [(0,1), (0,2), (1,2)]
+
 class Graph:
     # Instance Variables
     
     # Information
     
     def __len__(self):
+        """Return the number of nodes in the graph."""
         return self.nodes
 
     def __str__(self): # called with print() or str()
-        """draws the graph in a matrix format"""
+        """Draws the graph in a matrix format."""
         # the X's represent nodes which are guaranteed to be false, but are technically not part of the storage of the graph
         return "X\n" + "\n".join([" ".join(["T" if node else "F" for node in row]) + " X" for row in self.graph])
     
     def __repr__(self): # called if just stated in top level
         return self.__str__() # defer to a single display function
+
+    # Reference:  [2] Aric A. Hagberg, Daniel A. Schult and Pieter J. Swart, “Exploring network structure, dynamics,
+    # and function using NetworkX”, in Proceedings of the 7th Python in Science Conference (SciPy2008), Gäel Varoquaux,
+    # Travis Vaught, and Jarrod Millman (Eds), (Pasadena, CA USA), pp. 11–15, Aug 2008
+
 
     def draw(self):
         """Draws the graph using a Furchterman Reignold layout."""
@@ -89,13 +101,6 @@ class Graph:
         nx.draw_networkx_edges(b, pos, edgelist=antiedges, edge_color = 'b')
         plt.show()
 
-
-    # DNA BIT FORMAT:
-    # The format is a boolean bit which builds consecutively starting from the zero node.
-
-    # EXAMPLE: Graph of size 3 which has the edge list [(0,1), (1,2)]
-    # [True, False, True] <-> [(0,1), (0,2), (1,2)]
-
     def writeToFile(self, filename):
         """Writes dna to a file."""
         f = open(filename, 'w')
@@ -106,6 +111,7 @@ class Graph:
     # Initialization
 
     def __init__(self, generator, nodes):
+        """Initializes graph."""
         if nodes <= 0:
             raise Exception("Number of nodes needs to be greater than 0.")
         self.nodes = nodes
@@ -136,11 +142,13 @@ class Graph:
         return Graph(self.generator, self.nodes)
 
     def __getitem__(self, key):
+        """Get value of the edge."""
         if key == 0:
             return []
         return self.graph[key - 1]
     
     def __setitem__(self, key, value):
+        """Set the value of an edge."""
         self.graph[key - 1] = value
     
     # Methods
@@ -171,8 +179,6 @@ class Graph:
         return [(i, j) for i in range(len(self.graph) + 1) for j in range(len(self.graph) + 1) if
                 self.hasEdge(i, j) and j < i]
 
-    # leaving this in just for the graph bee case, but for all intents and purpose will be using the pointinversion
-    # method
     def toggleRandomEdge(self):
         """Toggles a random edge from the graph."""
         x = self.edgeList()
@@ -195,8 +201,8 @@ class Graph:
 
     ################################################################################
 
-    #Reference:  [4] Zhang, Yun, et al. "Genome-scale computational approaches to memory-intensive applications in systems biology." Supercomputing, 2005. Proceedings of the ACM/IEEE SC 2005 Conference. IEEE, 2005.
-
+    #Reference:  [4] Zhang, Yun, et al. "Genome-scale computational approaches to memory-intensive applications in
+    # systems biology." Supercomputing, 2005. Proceedings of the ACM/IEEE SC 2005 Conference. IEEE, 2005.
     def findCliques(self, cliqueSize):
         """ Finds all cliques from a graph using a buildup method. """
         nbrs = {}
@@ -248,7 +254,7 @@ def fromDna(dna):
         raise Exception("Wrong DNA length - must be a triangle number.")
 
 def boolConvert(s):
-    """Converts a string boolean value to an actual boolean value"""
+    """Converts a string boolean value to an actual boolean value."""
     s = s.strip()
     return s == "True"
 
@@ -262,7 +268,7 @@ def readFromFile(filename, size_of_graph):
     return fromDna(dna)
 
 def randomGenerator(r, c):
-    """Random generator for a graph"""
+    """Random generator for a graph."""
     return random.choice([True, False])
 
 def symmetricFitness(graph, cliqueSize):

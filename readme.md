@@ -52,18 +52,54 @@ python ramsey.py
 ```
 
 if you only have Python 3. Note that this was created in Python 3. If you would like to edit the default
-settings, you can find them in ramsey.py.
+settings, you can find them in ramsey.py. If you would like to just use the algorithms, then you would just run
+
+```
+import ramseyAlgorithms
+```
 
 
 ## Examples
 
-In order to generate a random example, run 
+First, run
 
 ```
-a = Graph(randomGenerator, n)
+import ramseyAlgorithms as ra
 ```
 
-where n is a natural number greater than 0.
+to import the proper package. In order to generate a random graph, run
+
+```
+a = ra.Graph(randomGenerator, n)
+```
+
+where n is a natural number greater than 0. If you would like to see the standard fitness of this graph, you would run
+
+```
+ra.fitness(a, n)
+```
+
+where n is the size of the cliques that you want to examine. If you would want to see the symmetric fitness, you would
+run
+
+```
+ra.symmetricFitness(a,n)
+```
+
+where once again, n is the size of the cliques you would want to examine. If you wanted to randomly toggle an edge on
+the graph, you would use
+
+```
+a.toggleRandomEdge()
+```
+
+To see which nodes are the cliques in the graph, you would run
+
+```
+a.findCliques(n)
+```
+
+where n is as prior.
 
 If you wanted to try finding a counterexample to R(4,4) at n=17, and you wanted to build up from n=12, you could use
 

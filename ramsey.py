@@ -1,8 +1,7 @@
 import sys
 import time
 
-from graph import *
-from evolution import *
+from ramseyAlgorithms import *
 
 # NOTE: We only care about what are called diagonal Ramsey numbers (since R(5,5)
 # is our end goal).

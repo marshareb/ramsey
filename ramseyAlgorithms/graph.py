@@ -112,7 +112,7 @@ class Graph:
 
     def __init__(self, generator, nodes):
         """Initializes graph."""
-        if nodes <= 0:
+        if nodes < 0:
             raise Exception("Number of nodes needs to be greater than 0.")
         self.nodes = nodes
         self.graph = [[generator(row, col) for col in range(0, row + 1)] for row in range(0, nodes - 1)] # assuming immutability

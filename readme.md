@@ -39,7 +39,7 @@ First clone the repo, then run
 pip install -r requirements.txt 
 ```
 
-Then, to see all of the preconstructed examples of the algorithms, run
+Then, to see all of the preconstructed examples of the algorithms, cd to the directory where you cloned the repo and run
 
 ```
 python3 ramsey.py 

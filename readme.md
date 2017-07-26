@@ -36,7 +36,13 @@ For example, for a graph of size 3 which has the edge list [(0,1), (1,2)], we ha
 First clone the repo, then run
 
 ```
-pip install -r requirements.txt 
+pip install -r requirements.txt
+```
+
+If you're on Mac or Linux, run
+
+```
+sudo apt-get install python-tk
 ```
 
 Then, to see all of the preconstructed examples of the algorithms, cd to the directory where you cloned the repo and run

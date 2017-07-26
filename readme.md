@@ -8,7 +8,7 @@ these methods to improve this from 43 to 44.
 
 ## Terminology
 
-**Node, Vertice, Point:** Represents an object.
+**Node, Vertice:** Represents an object.
 
 **Edge:** The two-element subsets of V denoting the connections between nodes.
 

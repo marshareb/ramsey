@@ -8,6 +8,10 @@ these methods to improve this from 43 to 44.
 
 ## Terminology
 
+**Node, Vertice, Point:** Represents an object.
+
+**Edge:** The two-element subsets of V denoting the connections between nodes.
+
 **Clique:** We say that we have a k-clique if there is a subset of nodes of size k such that each node is adjacent to each
 other node in the clique.
 

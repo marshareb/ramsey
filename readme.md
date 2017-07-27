@@ -8,6 +8,10 @@ these methods to improve this from 43 to 44.
 
 ## Terminology
 
+**Node, Vertice:** Represents an object.
+
+**Edge:** The two-element subsets of V denoting the connections between nodes.
+
 **Clique:** We say that we have a k-clique if there is a subset of nodes of size k such that each node is adjacent to each
 other node in the clique.
 
@@ -31,15 +35,21 @@ For example, for a graph of size 3 which has the edge list [(0,1), (1,2)], we ha
 
 [True, False, True] <-> [(0,1), (0,2), (1,2)]
 
-## Use
+## Installation and Examples
 
 First clone the repo, then run
 
 ```
-pip install -r requirements.txt 
+pip install -r requirements.txt
 ```
 
-Then, to see all of the examples, run 
+If you're on Mac or Linux, run
+
+```
+sudo apt-get install python-tk
+```
+
+Then, to see all of the preconstructed examples of the algorithms, cd to the directory where you cloned the repo and run
 
 ```
 python3 ramsey.py 
@@ -59,7 +69,7 @@ import ramseyAlgorithms
 ```
 
 
-## Examples
+## Usage
 
 First, run
 
@@ -104,11 +114,24 @@ where n is as prior.
 If you wanted to try finding a counterexample to R(4,4) at n=17, and you wanted to build up from n=12, you could use
 
 ```
-buildUpBees(800, 100, 200, 4, 12, 17)
+ra.buildUpBees(800, 100, 200, 4, 12, 17)
 ```
 
 This gives you a population size of 800 bees, it checks through 100 graphs, and it'll do 200 iterations before ending.
 
+If you wanted to save a graph, you would run
+
+```
+a.writeToFile('filename.txt')
+```
+
+and if you wanted to then read that file you would run
+
+```
+ra.readFromFile('filename.txt')
+```
+
+where filename.txt is whatever you wish to name your graph.
 
 ## References
 
@@ -129,5 +152,3 @@ Supercomputing, 2005. Proceedings of the ACM/IEEE SC 2005 Conference. IEEE, 2005
 
 Thanks to William Marrujo for his help and guidance, to Dr. Mark Ward for his inspiration and support, and to Dr. David
 McReynolds for his guidance. This work is supported by NSF grant DSM #1246818.
-
-

@@ -150,5 +150,5 @@ Supercomputing, 2005. Proceedings of the ACM/IEEE SC 2005 Conference. IEEE, 2005
 
 ## Acknowledgements
 
-Thanks to William Marrujo for his help and guidance, to Dr. Mark Ward for his inspiration and support, and to Dr. David
+Thanks to William Marrujo for his help and guidance, to Dr. Mark Ward for his inspiration and support, Miranda Champion for her support, and to Dr. David
 McReynolds for his guidance. This work is supported by NSF grant DSM #1246818.
